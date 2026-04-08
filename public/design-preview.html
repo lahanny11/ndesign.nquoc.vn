@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>N-design — Order Management</title>
+<style>
+:root{--acc:#7B8EF7;--al:#EEF0FE;--ad:#5B6FE8;--blk:#2D2D3A;--w:#FFFEFE;--g50:#FAF9FC;--g100:#F2F0F7;--g200:#E4E0EF;--g300:#CEC9E0;--g400:#A89EC0;--g600:#6E6488;--ok:#5BB89A;--okl:#E4F5F0;--warn:#E8925A;--warnl:#FEF4EC;--red:#E07A7A;--redl:#FDEEEE}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif;background:var(--g50);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh;overflow:hidden;position:relative}
+
+/* ── SIDEBAR ── */
+.sb{width:155px;flex-shrink:0;background:var(--w);border-right:1px solid var(--g200);display:flex;flex-direction:column;padding:16px 10px 14px}
+.sb-logo{display:flex;align-items:center;gap:8px;padding:2px 6px;margin-bottom:22px}
+.sb-lm{width:28px;height:28px;background:#6C6BAE;border-radius:7px;display:flex;align-items:center;justify-content:center}
+.sb-lm svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5}
+.sb-nm{font-size:14px;font-weight:700;letter-spacing:-.03em}.sb-nm b{color:var(--acc)}
+.sb-sec{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--g400);padding:0 8px;margin-bottom:4px}
+.sb-nav{display:flex;flex-direction:column;gap:1px;margin-bottom:4px}
+.si{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;color:var(--g600);border:none;background:none;width:100%;text-align:left;font-family:inherit;white-space:nowrap;overflow:hidden;transition:all .12s}
+.si svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.si:hover{background:var(--g50);color:var(--blk)}.si.on{background:var(--al);color:var(--acc)}
+.si-bdg{margin-left:auto;background:var(--acc);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;flex-shrink:0}
+.sb-gap{flex:1}
+.sb-perf{background:var(--g50);border-radius:10px;padding:10px;border:1px solid var(--g200)}
+.sb-pl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g400);margin-bottom:6px}
+.sb-pr{display:flex;align-items:center;gap:8px}
+.sb-pn{font-size:18px;font-weight:700;color:var(--acc);letter-spacing:-.04em}
+.sb-pb{flex:1;height:3px;background:var(--g200);border-radius:2px;overflow:hidden}
+.sb-pf{height:100%;background:var(--acc);width:98%}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:50px;background:var(--w);border-bottom:1px solid var(--g200);display:flex;align-items:center;gap:10px;padding:0 20px;flex-shrink:0}
+.tb-g{font-size:13px;color:var(--g600);flex:1}.tb-g b{color:var(--blk);font-weight:700}
+.sbox{display:flex;align-items:center;gap:7px;background:var(--g100);border-radius:7px;padding:5px 10px;width:200px}
+.sbox svg{width:12px;height:12px;stroke:var(--g400);fill:none;stroke-width:2;flex-shrink:0}
+.sbox input{border:none;background:none;outline:none;font-size:11px;color:var(--blk);width:100%;font-family:inherit}
+.ib{width:32px;height:32px;border-radius:7px;border:1px solid var(--g200);background:var(--w);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g600);position:relative}
+.ib svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.nd{position:absolute;top:5px;right:5px;width:5px;height:5px;background:#FF3B30;border-radius:50%;border:1.5px solid var(--w)}
+.ob{display:flex;align-items:center;gap:5px;background:var(--acc);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:opacity .12s}
+.ob:hover{opacity:.88}.ob svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.5}
+.content{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sc{background:var(--w);border-radius:11px;border:1px solid var(--g200);padding:13px}
+.sc.acc{background:var(--acc);border-color:var(--acc)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
+.sc-ico{width:27px;height:27px;border-radius:7px;background:var(--g100);display:flex;align-items:center;justify-content:center}
+.sc.acc .sc-ico{background:rgba(255,255,255,.18)}.sc-ico svg{width:12px;height:12px;stroke:var(--g600);fill:none;stroke-width:2}.sc.acc .sc-ico svg{stroke:#fff}
+.sc-bdg{font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px}
+.up{background:#E4F5F0;color:#5BB89A}.dn{background:#FDEEEE;color:#E07A7A}.sc.acc .sc-bdg{background:rgba(255,255,255,.2);color:#fff}
+.sc-num{font-size:20px;font-weight:700;letter-spacing:-.04em;color:var(--blk)}.sc.acc .sc-num{color:#fff}
+.sc-lbl{font-size:10px;color:var(--g400);margin-top:1px;font-weight:500}.sc.acc .sc-lbl{color:rgba(255,255,255,.7)}
+
+/* ── ALERT BANNER ── */
+.alert-banner{background:var(--redl);border:1px solid #FECACA;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--red)}
+.alert-banner svg{width:14px;height:14px;stroke:var(--red);fill:none;stroke-width:2;flex-shrink:0}
+.ab-close{margin-left:auto;cursor:pointer;opacity:.5;flex-shrink:0}.ab-close:hover{opacity:1}
+.ab-close svg{width:14px;height:14px;stroke:var(--red);fill:none;stroke-width:2}
+
+/* ── FILTER ── */
+.fr{display:flex;align-items:center;justify-content:space-between}
+.fr-l{display:flex;align-items:center;gap:10px}
+.fr-l h3{font-size:14px;font-weight:700;letter-spacing:-.025em}
+.fr-l h3 span{color:var(--g400);font-weight:400;font-size:13px}
+.ftabs{display:flex;gap:2px;background:var(--w);border:1px solid var(--g200);border-radius:8px;padding:2px}
+.ft{padding:5px 12px;border-radius:6px;border:none;background:none;font-size:11px;font-weight:600;color:var(--g600);cursor:pointer;font-family:inherit;transition:all .12s}
+.ft.on{background:var(--acc);color:#fff}.ft:hover:not(.on){background:var(--g50)}.ft.warn-tab{color:var(--red)}
+
+/* ── ORDER GRID ── */
+.og{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;align-items:start;padding-bottom:20px}
+.oc{background:var(--w);border-radius:11px;border:1.5px solid var(--g200);overflow:hidden;cursor:pointer;transition:all .18s;display:flex;flex-direction:column}
+.oc:hover{border-color:var(--g300);transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.08)}
+.oc.flag-red{border-color:var(--red)}.oc.flag-warn{border-color:var(--warn)}
+.oc-th{height:95px;flex:0 0 95px;position:relative;overflow:hidden;background:var(--g100)}
+.oc-th svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.oc-badges{position:absolute;top:6px;left:6px;display:flex;flex-direction:column;gap:3px}
+.sbdg{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:20px;font-size:8px;font-weight:700;border:1px solid rgba(255,255,255,.3);line-height:1.4}
+.sdot{width:4px;height:4px;border-radius:50%;flex-shrink:0}
+.s-na{background:rgba(245,245,245,.92);color:#606060}.s-na .sdot{background:#A0A0A0}
+.s-as{background:rgba(235,242,255,.95);color:var(--acc)}.s-as .sdot{background:var(--acc)}
+.s-fb{background:rgba(245,235,255,.95);color:#7C3AED}.s-fb .sdot{background:#7C3AED}
+.s-dn{background:rgba(232,248,239,.95);color:#5BB89A}.s-dn .sdot{background:#5BB89A}
+.s-ug{background:rgba(224,122,122,.88);color:#fff}
+.flag-icon{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.flag-icon.red{background:var(--red)}.flag-icon.warn{background:var(--warn)}
+.flag-icon svg{width:10px;height:10px;stroke:#fff;fill:none;stroke-width:2.5}
+.oc-body{padding:9px 10px 10px;display:flex;flex-direction:column;flex:1}
+.oc-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.oc-team{font-size:8px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.04em}
+.oc-by{font-size:8px;color:var(--g400)}
+.oc-title{font-size:11px;font-weight:600;line-height:1.4;color:var(--blk);margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:28px}
+.oc-progress{margin-bottom:7px}
+.oc-prog-lbl{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.opl-step{font-size:8px;font-weight:600;color:var(--g600)}.opl-pct{font-size:8px;font-weight:700}
+.oc-prog-bar{height:3px;background:var(--g100);border-radius:2px;overflow:hidden}
+.oc-prog-fill{height:100%;border-radius:2px;transition:width .3s}
+.oc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:7px;border-top:1px solid var(--g100);margin-top:auto}
+.od-date{font-size:8px;color:var(--g400);display:flex;align-items:center;gap:2px}
+.od-date svg{width:8px;height:8px;stroke:currentColor;fill:none;stroke-width:2}
+.od-late{font-size:8px;font-weight:700;color:var(--red)}.od-early{font-size:8px;font-weight:700;color:var(--ok)}
+.track-btn{font-size:9px;font-weight:700;padding:4px 9px;border-radius:6px;border:1.5px solid var(--acc);background:var(--al);color:var(--acc);cursor:pointer;font-family:inherit;transition:all .12s}
+.track-btn:hover{background:var(--acc);color:#fff}
+
+/* ── TRACKING PANEL ── */
+.panel-overlay{position:fixed;inset:0;background:rgba(10,10,10,.2);z-index:50;display:none}
+.panel-overlay.open{display:block}
+.slide-panel{position:fixed;top:0;right:0;bottom:0;width:480px;background:var(--w);border-left:1px solid var(--g200);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:51;box-shadow:-8px 0 40px rgba(0,0,0,.12)}
+.slide-panel.open{transform:translateX(0)}
+.sp-head{display:flex;align-items:flex-start;gap:10px;padding:16px 18px 14px;border-bottom:1px solid var(--g200);flex-shrink:0}
+.sp-info{flex:1}.sp-info h3{font-size:13px;font-weight:700;color:var(--blk);line-height:1.3;margin-bottom:2px}.sp-info p{font-size:11px;color:var(--g400)}
+.sp-x{width:28px;height:28px;border-radius:50%;border:1px solid var(--g200);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g400);flex-shrink:0;transition:all .12s}
+.sp-x:hover{background:var(--g100);color:var(--blk)}.sp-x svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.sp-scroll{flex:1;overflow-y:auto;padding:16px 18px;scrollbar-width:thin}
+.sp-scroll::-webkit-scrollbar{width:3px}.sp-scroll::-webkit-scrollbar-thumb{background:var(--g200);border-radius:2px}
+.sp-alert{border-radius:10px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;font-size:11px;line-height:1.6}
+.sp-alert.red{background:var(--redl);border:1px solid #FECACA;color:var(--red)}
+.sp-alert.warn{background:var(--warnl);border:1px solid #FDDCB5;color:var(--warn)}
+.sp-alert svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:2px}
+.sp-alert b{font-weight:700;display:block;margin-bottom:3px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.metric{background:var(--g50);border-radius:9px;padding:10px;border:1px solid var(--g100);text-align:center}
+.metric.bad{background:var(--redl);border-color:#F2BEBE}.metric.warn-m{background:var(--warnl);border-color:#FDDCB5}.metric.good{background:var(--okl);border-color:#BBF7D0}
+.metric-val{font-size:17px;font-weight:700;letter-spacing:-.03em;color:var(--blk);line-height:1.1}
+.metric.bad .metric-val{color:var(--red)}.metric.warn-m .metric-val{color:var(--warn)}.metric.good .metric-val{color:var(--ok)}
+.metric-lbl{font-size:9px;color:var(--g400);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sp-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:10px;margin-top:16px;display:flex;align-items:center;gap:6px}
+.sp-sec:first-of-type{margin-top:0}.sp-sec-line{flex:1;height:1px;background:var(--g100)}
+.tl{display:flex;flex-direction:column}
+.tl-step{display:flex;gap:12px;position:relative}
+.tl-line-v{position:absolute;left:13px;top:26px;bottom:-6px;width:1.5px;z-index:0}
+.tl-line-v.done{background:var(--ok)}.tl-line-v.active{background:linear-gradient(var(--acc) 0%,var(--g200) 100%)}.tl-line-v.pending{background:var(--g200)}
+.tl-dot-col{flex-shrink:0;width:27px;display:flex;justify-content:center;padding-top:1px;z-index:1}
+.tl-dot{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--g200);background:var(--w);flex-shrink:0}
+.tl-step.done .tl-dot{background:var(--ok);border-color:var(--ok)}
+.tl-step.active .tl-dot{background:var(--acc);border-color:var(--acc)}
+.tl-step.flagged .tl-dot{background:var(--red);border-color:var(--red)}
+.tl-step.pending .tl-dot{background:var(--g100);border-color:var(--g200)}
+.tl-dot svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:2.5}
+.tl-step.pending .tl-dot svg{stroke:var(--g400);stroke-width:2}
+.tl-content{flex:1;padding-bottom:18px}
+.tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;gap:6px}
+.tl-name{font-size:12px;font-weight:700;color:var(--blk)}.tl-step.pending .tl-name{color:var(--g400);font-weight:500}
+.tl-time{font-size:10px;color:var(--g400);white-space:nowrap;flex-shrink:0}
+.tl-time.late{color:var(--red);font-weight:700}.tl-time.early{color:var(--ok);font-weight:700}
+.tl-desc{font-size:11px;color:var(--g600);line-height:1.5;margin-bottom:7px}
+.tl-checks{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.tl-chk{display:flex;align-items:flex-start;gap:6px;font-size:10px;color:var(--g600);line-height:1.4}
+.tl-chk svg{width:13px;height:13px;flex-shrink:0;margin-top:1px}
+.tl-chk.ok svg{stroke:var(--ok);fill:none;stroke-width:2.5}.tl-chk.no svg{stroke:var(--red);fill:none;stroke-width:2.5}.tl-chk.pend svg{stroke:var(--g300);fill:none;stroke-width:2}
+.tl-chk.no{color:var(--red)}
+.tl-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.tl-btn{padding:5px 11px;border-radius:7px;border:1.5px solid var(--g200);background:var(--w);font-size:10px;font-weight:600;color:var(--g600);cursor:pointer;font-family:inherit;transition:all .12s}
+.tl-btn:hover{border-color:var(--acc);color:var(--acc)}
+.tl-btn.primary{background:var(--acc);color:#fff;border-color:var(--acc)}.tl-btn.primary:hover{opacity:.88}
+.tl-btn.danger{border-color:var(--red);color:var(--red)}.tl-btn.danger:hover{background:var(--redl)}
+
+/* ── ORDER FORM MODAL ── */
+.form-overlay{display:none;position:fixed;inset:0;background:rgba(100,90,140,.35);z-index:80;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.form-overlay.open{display:flex}
+.order-modal{background:var(--w);border-radius:20px;width:100%;max-width:620px;overflow:hidden;box-shadow:0 28px 72px rgba(0,0,0,.22);margin:auto}
+.om-top{display:flex;align-items:center;justify-content:space-between;padding:17px 22px;border-bottom:1px solid var(--g200)}
+.om-brand{display:flex;align-items:center;gap:9px}
+.om-dot{width:8px;height:8px;background:var(--acc);border-radius:50%}
+.om-name{font-size:15px;font-weight:700;letter-spacing:-.025em}
+.om-x{width:29px;height:29px;border-radius:50%;border:1px solid var(--g200);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g400);transition:all .12s}
+.om-x:hover{background:var(--g100);color:var(--blk)}.om-x svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.om-prog{height:2px;background:var(--g100)}.om-pf{height:100%;background:var(--acc);transition:width .4s cubic-bezier(.4,0,.2,1)}
+.om-steps{display:flex;padding:10px 22px;border-bottom:1px solid var(--g200);overflow-x:auto;scrollbar-width:none;gap:0}
+.om-steps::-webkit-scrollbar{display:none}
+.oms{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;color:var(--g400);white-space:nowrap;flex-shrink:0}
+.oms.on{background:var(--al);color:var(--acc)}.oms.dn{color:var(--g600)}
+.oms-n{width:17px;height:17px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0}
+.oms.on .oms-n{background:var(--acc);border-color:var(--acc);color:#fff}.oms.dn .oms-n{background:#6C6BAE;border-color:var(--blk);color:#fff}
+.om-body{padding:20px 22px;max-height:60vh;overflow-y:auto;scrollbar-width:thin}
+.om-body::-webkit-scrollbar{width:3px}.om-body::-webkit-scrollbar-thumb{background:var(--g200);border-radius:2px}
+.fg{margin-bottom:17px}
+.fl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--g400);margin-bottom:7px;display:block}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+input,select,textarea{width:100%;background:var(--g50);border:1.5px solid var(--g200);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--blk);outline:none;transition:all .15s;-webkit-appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);background:var(--w);box-shadow:0 0 0 3px rgba(0,102,255,.08)}
+textarea{resize:none;height:70px;line-height:1.6}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9' fill='none' stroke='%23bbb' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:28px}
+.ut{padding:12px 14px;border-radius:11px;border:1.5px solid var(--g200);display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .18s;user-select:none}
+.ut.on{border-color:#F2BEBE;background:#FDF5F5}
+.ut-l{display:flex;align-items:center;gap:10px}
+.ut-ic{width:30px;height:30px;border-radius:8px;background:var(--g100);display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ut.on .ut-ic{background:#FCEAEA}.ut-ic svg{width:13px;height:13px;stroke:var(--g400);fill:none;stroke-width:2}.ut.on .ut-ic svg{stroke:#D97070}
+.ut-t{font-size:13px;font-weight:700;color:var(--blk)}.ut-s{font-size:10px;color:var(--g400);margin-top:1px}
+.ios{width:34px;height:19px;border-radius:10px;background:var(--g300);position:relative;transition:background .2s;flex-shrink:0}
+.ios.on{background:#7BCBA8}
+.ios::after{content:'';position:absolute;width:15px;height:15px;background:var(--w);border-radius:50%;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.ios.on::after{transform:translateX(15px)}
+.tgroups{display:flex;flex-direction:column;gap:6px}
+.tg{border:1.5px solid var(--g200);border-radius:11px;overflow:hidden;transition:border-color .15s}.tg.open{border-color:var(--acc)}
+.tg-hdr{display:flex;align-items:center;gap:8px;padding:10px 13px;cursor:pointer;background:var(--g50);user-select:none;transition:background .12s}
+.tg-hdr:hover{background:var(--g100)}.tg.open .tg-hdr{background:var(--al)}
+.tg-ico{width:13px;height:13px;stroke:var(--g400);fill:none;stroke-width:2;flex-shrink:0}.tg.open .tg-ico{stroke:var(--acc)}
+.tg-nm{font-size:12px;font-weight:700;color:var(--blk);flex:1}
+.tg-ct{font-size:10px;background:var(--g200);color:var(--g600);padding:2px 7px;border-radius:20px;font-weight:700}.tg.open .tg-ct{background:var(--acc);color:#fff}
+.tg-ar{width:12px;height:12px;stroke:var(--g400);fill:none;stroke-width:2;transition:transform .2s;flex-shrink:0}.tg.open .tg-ar{transform:rotate(180deg);stroke:var(--acc)}
+.tg-body{display:none;padding:12px;gap:10px;flex-wrap:wrap;background:var(--w)}.tg.open .tg-body{display:flex}
+.tc{width:108px;border:1.5px solid var(--g200);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .18s;flex-shrink:0;background:var(--w);display:flex;flex-direction:column}
+.tc:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,102,255,.12)}.tc.sel{border-color:var(--acc);background:var(--al);box-shadow:0 0 0 3px rgba(0,102,255,.1)}
+.tc-mock{background:var(--g50);display:flex;align-items:center;justify-content:center;padding:10px 8px 8px;min-height:92px}
+.tc-meta{padding:6px 8px 8px;border-top:1px solid var(--g100)}
+.tc-nm{font-size:10px;font-weight:700;color:var(--blk);line-height:1.3}.tc-sz{font-size:9px;color:var(--acc);font-weight:700;margin-top:2px;font-family:ui-monospace,'SF Mono',monospace}.tc-pl{font-size:9px;color:var(--g400);margin-top:1px}
+.sel-bn{display:none;margin-top:10px;padding:8px 12px;background:var(--al);border-radius:8px;border:1px solid rgba(0,102,255,.2);font-size:12px;color:var(--acc);font-weight:600;align-items:center;gap:6px}.sel-bn.show{display:flex}.sel-bn svg{width:12px;height:12px;stroke:var(--acc);fill:none;stroke-width:2.5;flex-shrink:0}
+.mbseg{display:flex;gap:2px;padding:3px;background:var(--g100);border-radius:9px;margin-bottom:12px}
+.mbt{flex:1;padding:5px 7px;border-radius:7px;border:none;background:none;font-size:11px;font-weight:600;color:var(--g400);cursor:pointer;font-family:inherit;transition:all .15s;text-align:center}
+.mbt.on{background:var(--w);color:var(--blk);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mbp{display:none}.mbp.on{display:block}
+.ug{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.us{aspect-ratio:1;border-radius:7px;border:1.5px dashed var(--g300);background:var(--g50);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;overflow:hidden;position:relative;transition:all .15s}
+.us:hover{border-color:var(--acc);background:var(--al)}.us img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.us .upl{color:var(--g400);display:flex;flex-direction:column;align-items:center;gap:2px}.us .upl svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.5}.us .upl span{font-size:9px;font-weight:600}
+.us .urm{position:absolute;top:2px;right:2px;width:14px;height:14px;background:rgba(0,0,0,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;cursor:pointer}
+.us:hover .urm{opacity:1}.us .urm svg{width:7px;height:7px;stroke:#fff;fill:none;stroke-width:2.5}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.scc{border:1.5px solid var(--g200);border-radius:9px;overflow:hidden;cursor:pointer;transition:all .15s}.scc:hover{border-color:var(--acc)}.scc.sel{border-color:var(--acc);box-shadow:0 0 0 2px var(--al)}.scc-art{height:54px}.scc-art svg{width:100%;height:100%;display:block}.scc-label{padding:5px 8px}.scc-nm{font-size:11px;font-weight:700;color:var(--blk)}.scc-d{font-size:9px;color:var(--g400);margin-top:1px}
+.cg{display:flex;gap:6px;flex-wrap:wrap}.ci{display:flex;flex-direction:column;align-items:center;gap:2px}
+.csw{width:30px;height:30px;border-radius:8px;border:2px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}.csw.sel{box-shadow:0 0 0 2px var(--w),0 0 0 3.5px var(--acc)}.csw svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:3;opacity:0}.csw.sel svg{opacity:1}.cn{font-size:9px;color:var(--g400)}
+.ai-wrap{border:1.5px solid var(--g200);border-radius:11px;overflow:hidden}
+.ai-hd{padding:10px 13px;background:var(--g50);border-bottom:1px solid var(--g200)}.ai-hd-t{font-size:12px;font-weight:700;color:var(--blk)}.ai-hd-s{font-size:10px;color:var(--g400);margin-top:1px}
+.ai-exs{display:flex;gap:5px;flex-wrap:wrap;padding:8px 13px;border-bottom:1px solid var(--g100)}.ai-ex{padding:3px 9px;border-radius:20px;border:1px solid var(--g200);background:var(--w);font-size:10px;font-weight:600;color:var(--g600);cursor:pointer;font-family:inherit;transition:all .12s}.ai-ex:hover{border-color:var(--acc);color:var(--acc);background:var(--al)}
+.ai-ir{display:flex;gap:7px;padding:8px 13px;border-bottom:1px solid var(--g100)}.ai-ir input{flex:1;padding:7px 10px;font-size:12px}
+.ai-go{padding:0 14px;height:34px;background:var(--acc);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}.ai-go:hover{opacity:.85}.ai-go:disabled{opacity:.3;cursor:not-allowed}
+.ai-out{padding:10px 13px;font-size:12px;color:var(--g600);line-height:1.7;min-height:48px}
+.mb-board{margin-top:10px}.mb-bt{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}.mb-bl{font-size:11px;font-weight:700;color:var(--blk)}.mb-rg{padding:3px 8px;border-radius:5px;border:1px solid var(--g200);background:var(--w);font-size:10px;font-weight:600;color:var(--g600);cursor:pointer;font-family:inherit}.mb-rg:hover{border-color:var(--acc);color:var(--acc)}
+.mb-cells{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:8px;overflow:hidden}.mb-c{overflow:hidden;position:relative;background:var(--g100)}.mb-c svg{width:100%;height:100%;display:block}
+.mb-pal{display:flex;height:14px;border-radius:4px;overflow:hidden;gap:2px;margin-top:6px}.mb-ps{flex:1}
+.conf-rows{border:1.5px solid var(--g200);border-radius:11px;overflow:hidden}.cr{display:flex;gap:10px;padding:10px 13px;border-bottom:1px solid var(--g100);font-size:12px}.cr:last-child{border-bottom:none}.cr-k{color:var(--g400);min-width:88px;font-weight:600;flex-shrink:0}.cr-v{color:var(--blk);font-weight:700;flex:1}
+.om-foot{display:flex;gap:8px;padding:14px 22px;border-top:1px solid var(--g200);background:var(--g50)}
+.bb{padding:0 16px;height:38px;background:var(--w);border:1.5px solid var(--g200);border-radius:9px;font-size:13px;font-weight:700;color:var(--g600);cursor:pointer;font-family:inherit;transition:all .12s}.bb:hover{border-color:var(--g400);color:var(--blk)}
+.bn{flex:1;height:38px;background:var(--acc);color:var(--w);border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:5px;transition:opacity .12s}.bn:hover{opacity:.88}.bn svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2.5}
+.om-sv{display:none;flex-direction:column;align-items:center;padding:44px 22px;text-align:center}.om-sv.on{display:flex}
+.sv-ring{width:54px;height:54px;border-radius:50%;background:var(--al);border:1.5px solid rgba(0,102,255,.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.sv-ring svg{width:23px;height:23px;stroke:var(--acc);fill:none;stroke-width:2.5}
+.sv-t{font-size:19px;font-weight:700;letter-spacing:-.03em;margin-bottom:5px}.sv-s{font-size:12px;color:var(--g400);line-height:1.7;max-width:300px}
+.sv-id{font-size:11px;color:var(--acc);margin-top:12px;padding:5px 14px;border-radius:20px;border:1px solid rgba(0,102,255,.2);background:var(--al);font-weight:700;font-family:ui-monospace,'SF Mono',monospace}
+.sv-new{margin-top:18px;padding:9px 22px;background:var(--acc);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}.sv-new:hover{opacity:.85}
+
+/* ── INTERVENTION MODAL ── */
+.int-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:200;align-items:center;justify-content:center}
+.int-overlay.open{display:flex}
+.int-box{background:var(--w);border-radius:18px;padding:26px;max-width:380px;width:90%;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.int-icon{width:44px;height:44px;background:var(--redl);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.int-icon svg{width:20px;height:20px;stroke:var(--red);fill:none;stroke-width:2}
+.int-title{font-size:16px;font-weight:700;color:var(--blk);margin-bottom:6px}
+.int-desc{font-size:12px;color:var(--g600);line-height:1.6;margin-bottom:16px}
+.int-flags{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.int-flag{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--red);padding:8px 10px;background:var(--redl);border-radius:8px;line-height:1.4}
+.int-flag svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0;margin-top:1px}
+.int-acts{display:flex;gap:8px}
+.int-btn{flex:1;height:38px;border-radius:9px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.int-btn.cancel{background:var(--g100);color:var(--g600)}.int-btn.cancel:hover{background:var(--g200)}
+.int-btn.confirm{background:var(--red);color:#fff}.int-btn.confirm:hover{opacity:.88}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="sb-lm"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5M2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="sb-nm">N<b>-</b>design</div>
+  </div>
+  <div class="sb-sec">Workspace</div>
+  <div class="sb-nav">
+    <button class="si on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Quản lý Order<span class="si-bdg" id="sbOrderCount">7</span></button>
+    <button class="si"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg>Toàn bộ yêu cầu</button>
+    <button class="si"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Nhật ký dữ liệu</button>
+  </div>
+  <div class="sb-sec" style="margin-top:14px">Công cụ</div>
+  <div class="sb-nav">
+    <button class="si"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Moodboard AI</button>
+    <button class="si"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback<span class="si-bdg">3</span></button>
+  </div>
+  <div class="sb-gap"></div>
+  <div class="sb-perf"><div class="sb-pl">Hiệu suất tháng này</div><div class="sb-pr"><div class="sb-pn">98%</div><div class="sb-pb"><div class="sb-pf"></div></div></div></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="tb-g">Chào buổi sáng, <b>N Designer.</b></div>
+    <div class="sbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Tìm kiếm order..."/></div>
+    <button class="ib" style="margin-right:4px"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><div class="nd"></div></button>
+    <button class="ob" onclick="openForm()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Order Design</button>
+  </header>
+  <main class="content">
+    <!-- STATS -->
+    <div class="stats">
+      <div class="sc acc"><div class="sc-top"><div class="sc-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="sc-bdg" id="stat-running-badge">+12%</span></div><div class="sc-num" id="stat-running">7</div><div class="sc-lbl">Order đang chạy</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><span class="sc-bdg up">+5</span></div><div class="sc-num">24</div><div class="sc-lbl">Hoàn thành tháng này</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><span class="sc-bdg" style="background:#FDEEEE;color:#E07A7A">2 orders</span></div><div class="sc-num" style="color:#E07A7A">2</div><div class="sc-lbl">Cần leader can thiệp</div></div>
+      <div class="sc"><div class="sc-top"><div class="sc-ico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="sc-bdg up">avg</span></div><div class="sc-num">2.3</div><div class="sc-lbl">Revision rounds / order</div></div>
+    </div>
+    <!-- ALERT BANNER -->
+    <div class="alert-banner" id="alertBanner">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span><b>2 order cần leader can thiệp:</b> &nbsp;"Slide bài giảng tháng 4" (3+ revision, không giao tiếp) và "Thumbnail Youtube Series" (quá deadline, chưa double-check brief)</span>
+      <span class="ab-close" onclick="document.getElementById('alertBanner').style.display='none'"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+    </div>
+    <!-- FILTER -->
+    <div class="fr">
+      <div class="fr-l">
+        <h3>Danh sách order <span id="cnt">· 7 tasks</span></h3>
+        <div class="ftabs">
+          <button class="ft on" onclick="fTab(this,'all')">Tất cả</button>
+          <button class="ft" onclick="fTab(this,'pending')">Chờ nhận</button>
+          <button class="ft" onclick="fTab(this,'active')">Đang chạy</button>
+          <button class="ft" onclick="fTab(this,'done')">Hoàn thành</button>
+          <button class="ft warn-tab" onclick="fTab(this,'flag')">⚠ Cảnh báo (2)</button>
+        </div>
+      </div>
+    </div>
+    <div class="og" id="og"></div>
+  </main>
+</div>
+
+<!-- PANEL OVERLAY -->
+<div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- TRACKING PANEL -->
+<div class="slide-panel" id="slidePanel">
+  <div class="sp-head">
+    <div class="sp-info"><h3 id="sp-title">Tracking</h3><p id="sp-sub">Timeline tiến độ</p></div>
+    <button class="sp-x" onclick="closePanel()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="sp-scroll" id="spBody"></div>
+</div>
+
+<!-- ORDER FORM OVERLAY -->
+<div class="form-overlay" id="formOverlay">
+<div class="order-modal">
+  <div class="om-top">
+    <div class="om-brand"><div class="om-dot"></div><span class="om-name">Order Design</span></div>
+    <button class="om-x" onclick="closeForm()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="om-prog"><div class="om-pf" id="ompf" style="width:25%"></div></div>
+  <div class="om-steps" id="omst">
+    <div class="oms on"><div class="oms-n">1</div>Thông tin</div>
+    <div class="oms"><div class="oms-n">2</div>Loại sản phẩm</div>
+    <div class="oms"><div class="oms-n">3</div>Moodboard</div>
+    <div class="oms"><div class="oms-n">4</div>Xác nhận</div>
+  </div>
+  <div class="om-body" id="omb">
+    <!-- STEP 0 -->
+    <div id="os0">
+      <div class="fg g2">
+        <div><span class="fl">Người order</span><input id="oiN" type="text" placeholder="Tên của bạn"/></div>
+        <div><span class="fl">Team</span><select id="oiT"><option>Admin Nhile team</option><option>Nhi Le</option><option>nlt</option><option>ms nhi</option><option>Nedu</option><option>Edit</option><option>It</option></select></div>
+      </div>
+      <div class="fg"><span class="fl">Tên task</span><input id="oiTi" type="text" placeholder="VD: Thumbnail YouTube series tháng 4..."/></div>
+      <div class="fg g2">
+        <div><span class="fl">Deadline</span><input id="oiD" type="date"/></div>
+        <div><span class="fl">Brief</span><textarea id="oiB" placeholder="Màu sắc, font, phong cách, kích thước..."></textarea></div>
+      </div>
+      <div class="ut" id="out" onclick="this.classList.toggle('on');document.getElementById('oios').classList.toggle('on')">
+        <div class="ut-l"><div class="ut-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div class="ut-t">Task gấp</div><div class="ut-s">Ưu tiên designer nhận ngay lập tức</div></div></div>
+        <div class="ios" id="oios"></div>
+      </div>
+    </div>
+    <!-- STEP 1 -->
+    <div id="os1" style="display:none">
+      <div class="fg"><span class="fl">Chọn loại sản phẩm</span>
+        <div class="tgroups" id="otg"></div>
+        <div class="sel-bn" id="osb"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span id="ost"></span></div>
+      </div>
+    </div>
+    <!-- STEP 2 -->
+    <div id="os2" style="display:none">
+      <div class="fg"><span class="fl">Moodboard tham khảo</span>
+        <div class="mbseg"><button class="mbt on" onclick="oSwP('upload',this)">Upload ảnh</button><button class="mbt" onclick="oSwP('style',this)">Phong cách</button><button class="mbt" onclick="oSwP('color',this)">Màu sắc</button><button class="mbt" onclick="oSwP('ai',this)">AI phân tích</button></div>
+        <div class="mbp on" id="op-upload"><div class="ug" id="ougG"></div><input type="file" id="ombF" accept="image/*" multiple style="display:none" onchange="oHUp(event)"/><p style="font-size:10px;color:var(--g400);margin-top:7px">Nhấn ô để upload — tối đa 8 ảnh</p></div>
+        <div class="mbp" id="op-style"><div class="sg" id="osgG"></div></div>
+        <div class="mbp" id="op-color"><div class="cg" id="ocgG"></div></div>
+        <div class="mbp" id="op-ai">
+          <div class="ai-wrap">
+            <div class="ai-hd"><div class="ai-hd-t">✦ AI phân tích phong cách</div><div class="ai-hd-s">Mô tả style → palette, font & moodboard tự động</div></div>
+            <div class="ai-exs" id="oaiEx"></div>
+            <div class="ai-ir"><input type="text" id="oaiI" placeholder="VD: Tối giản đen trắng phong cách Nhật Bản..." onkeydown="if(event.key==='Enter')oRunAI()"/><button class="ai-go" id="oaiG" onclick="oRunAI()">Phân tích</button></div>
+            <div class="ai-out" id="oaiO"><span style="color:var(--g400)">Nhập mô tả phong cách và nhấn Phân tích.</span></div>
+          </div>
+          <div class="mb-board" id="ombBd" style="display:none">
+            <div class="mb-bt"><span class="mb-bl" id="ombBL">Moodboard</span><button class="mb-rg" onclick="oBuildBoard()">Tạo lại</button></div>
+            <div class="mb-cells" id="ombC"></div>
+            <div class="mb-pal" id="ombP"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- STEP 3 -->
+    <div id="os3" style="display:none"><div class="fg"><span class="fl">Xác nhận thông tin trước khi gửi</span><div class="conf-rows" id="ocr"></div></div></div>
+  </div>
+  <!-- SUCCESS -->
+  <div class="om-sv" id="omSv">
+    <div class="sv-ring"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="sv-t">Order đã được gửi! 🎉</div>
+    <div class="sv-s">Designer sẽ nhận task và liên hệ xác nhận brief sớm nhất.</div>
+    <div class="sv-id" id="omSvId"></div>
+    <button class="sv-new" onclick="oResetAll()">+ Tạo order mới</button>
+  </div>
+  <div class="om-foot" id="omFt">
+    <button class="bb" id="oBtnBk" style="display:none" onclick="oNav(-1)">← Quay lại</button>
+    <button class="bn" id="oBtnNx" onclick="oNav(1)"><span id="oBL">Tiếp theo</span><svg viewBox="0 0 24 24" id="oBI"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+  </div>
+</div>
+</div>
+
+<!-- INTERVENTION MODAL -->
+<div class="int-overlay" id="intOverlay">
+  <div class="int-box">
+    <div class="int-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="int-title">Gắn Cờ cho Leader</div>
+    <div class="int-desc" id="intDesc">Order này cần leader can thiệp.</div>
+    <div class="int-flags" id="intFlags"></div>
+    <div class="int-acts"><button class="int-btn cancel" onclick="closeInt()">Bỏ qua</button><button class="int-btn confirm" onclick="confirmInt()">✓ Xác nhận gắn cờ</button></div>
+  </div>
+</div>
+
+</div><!-- .app -->
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// MOCK SVGs
+// ═══════════════════════════════════════════════════════════════════════════
+function phoneSquare(c){return`<svg width="54" height="80" viewBox="0 0 54 80" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="52" height="78" rx="8" fill="#1C1C1E" stroke="#3A3A3C" stroke-width="1"/><rect x="3" y="3" width="48" height="74" rx="6" fill="#F8F8F8"/><rect x="3" y="3" width="48" height="9" rx="6" fill="#F8F8F8"/><rect x="3" y="9" width="48" height="3" fill="#F8F8F8"/><text x="8" y="9" font-size="4" fill="#333" font-family="system-ui" font-weight="600">9:41</text><rect x="3" y="12" width="48" height="9" fill="#fff"/><text x="27" y="18" font-size="5" fill="#111" text-anchor="middle" font-family="system-ui" font-weight="700">Instagram</text><rect x="3" y="21" width="48" height="10" fill="#fff"/><circle cx="10" cy="26" r="4" fill="#ddd"/><rect x="3" y="31" width="48" height="30" fill="${c}"/><text x="27" y="48" font-size="7" fill="rgba(255,255,255,.9)" text-anchor="middle" font-family="system-ui" font-weight="700">QUOTE</text><rect x="11" y="51" width="32" height="2" rx="1" fill="rgba(255,255,255,.6)"/><rect x="3" y="61" width="48" height="8" fill="#fff"/><rect x="19" y="3" width="16" height="4" rx="2" fill="#1C1C1E"/></svg>`;}
+function phoneStory(c){return`<svg width="46" height="82" viewBox="0 0 46 82" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="44" height="80" rx="7" fill="#1C1C1E" stroke="#3A3A3C" stroke-width="1"/><rect x="3" y="3" width="40" height="76" rx="5.5" fill="${c}"/><rect x="5" y="7" width="36" height="2" rx="1" fill="rgba(255,255,255,.3)"/><rect x="5" y="7" width="18" height="2" rx="1" fill="rgba(255,255,255,.9)"/><circle cx="11" cy="16" r="4.5" fill="rgba(255,255,255,.9)"/><text x="18" y="15" font-size="4" fill="#fff" font-family="system-ui" font-weight="700">username</text><rect x="8" y="46" width="30" height="3.5" rx="1.5" fill="rgba(255,255,255,.9)"/><rect x="12" y="52" width="22" height="2.5" rx="1.2" fill="rgba(255,255,255,.6)"/><rect x="3" y="70" width="40" height="9" fill="rgba(0,0,0,.35)"/><rect x="15" y="3" width="16" height="4" rx="2" fill="#1C1C1E"/></svg>`;}
+function igReel(c){return`<svg width="46" height="82" viewBox="0 0 46 82" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="44" height="80" rx="7" fill="#111" stroke="#333" stroke-width="1"/><rect x="3" y="3" width="40" height="76" rx="5.5" fill="${c}"/><text x="23" y="12" font-size="5.5" fill="rgba(255,255,255,.9)" text-anchor="middle" font-family="system-ui" font-weight="700">Reels</text><text x="38" y="36" font-size="8" fill="rgba(255,255,255,.85)" text-anchor="middle">♡</text><text x="38" y="48" font-size="7" fill="rgba(255,255,255,.85)" text-anchor="middle">✦</text><text x="38" y="60" font-size="7" fill="rgba(255,255,255,.85)" text-anchor="middle">➤</text><circle cx="9" cy="63" r="4" fill="rgba(255,255,255,.8)"/><rect x="15" y="61" width="17" height="2.5" rx="1.2" fill="rgba(255,255,255,.85)"/><rect x="15" y="3" width="16" height="4" rx="2" fill="#111"/></svg>`;}
+function tiktok(c){return`<svg width="46" height="82" viewBox="0 0 46 82" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="44" height="80" rx="7" fill="#111" stroke="#333" stroke-width="1"/><rect x="3" y="3" width="40" height="76" rx="5.5" fill="${c}"/><rect x="5" y="6" width="16" height="7" rx="2" fill="#F4A0A0"/><text x="13" y="11.5" font-size="4.8" fill="#fff" text-anchor="middle" font-family="system-ui" font-weight="700">TikTok</text><text x="38" y="35" font-size="8" fill="rgba(255,255,255,.85)" text-anchor="middle">♡</text><text x="38" y="48" font-size="7" fill="rgba(255,255,255,.85)" text-anchor="middle">✦</text><rect x="3" y="74" width="40" height="2" fill="rgba(255,255,255,.2)"/><rect x="3" y="74" width="17" height="2" fill="#F4A0A0"/><rect x="15" y="3" width="16" height="4" rx="2" fill="#111"/></svg>`;}
+function pinterest(c){return`<svg width="48" height="72" viewBox="0 0 48 72" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="48" height="72" rx="6" fill="${c}"/><rect x="30" y="6" width="14" height="8" rx="4" fill="#E60023"/><text x="37" y="11.5" font-size="4.5" fill="#fff" text-anchor="middle" font-family="system-ui" font-weight="700">Save</text><rect x="5" y="52" width="32" height="3" rx="1.5" fill="rgba(255,255,255,.9)"/><circle cx="9" cy="65" r="4" fill="rgba(255,255,255,.85)"/><circle cx="8" cy="8" r="6" fill="rgba(255,255,255,.9)"/><text x="8" y="10.5" font-size="7" fill="#E60023" text-anchor="middle" font-family="Georgia,serif" font-weight="700">P</text></svg>`;}
+function ytThumb(c){return`<svg width="86" height="50" viewBox="0 0 86 50" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="86" height="50" rx="5" fill="${c}"/><rect x="8" y="9" width="46" height="4" rx="2" fill="rgba(255,255,255,.9)"/><rect x="8" y="16" width="30" height="3" rx="1.5" fill="rgba(255,255,255,.6)"/><circle cx="64" cy="25" r="13" fill="rgba(0,0,0,.45)"/><polygon points="59,19 59,31 73,25" fill="rgba(255,255,255,.95)"/><rect x="0" y="41" width="86" height="9" fill="rgba(0,0,0,.5)"/><rect x="64" y="43" width="18" height="6" rx="1.5" fill="#F4A0A0"/><polygon points="70,45 70,49 75,47" fill="#fff"/></svg>`;}
+function ytBanner(c){return`<svg width="88" height="24" viewBox="0 0 88 24" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="88" height="24" rx="4" fill="${c}"/><rect x="0" y="0" width="88" height="24" fill="rgba(0,0,0,.12)"/><text x="44" y="11" font-size="6" fill="rgba(255,255,255,.95)" text-anchor="middle" font-family="system-ui" font-weight="700">Channel Name</text><rect x="10" y="13" width="68" height="1.5" rx=".75" fill="rgba(255,255,255,.3)"/><text x="44" y="21" font-size="4.5" fill="rgba(255,255,255,.6)" text-anchor="middle" font-family="system-ui">2560 × 1440 px</text></svg>`;}
+function fbCover(c){return`<svg width="88" height="38" viewBox="0 0 88 38" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="88" height="38" rx="4" fill="${c}"/><rect x="0" y="0" width="88" height="38" fill="rgba(0,0,0,.15)"/><rect x="8" y="11" width="42" height="4" rx="2" fill="rgba(255,255,255,.9)"/><rect x="8" y="18" width="28" height="3" rx="1.5" fill="rgba(255,255,255,.6)"/><circle cx="72" cy="19" r="9" fill="rgba(255,255,255,.2)" stroke="rgba(255,255,255,.4)" stroke-width=".8"/><text x="72" y="21.5" font-size="7" fill="rgba(255,255,255,.8)" text-anchor="middle" font-family="system-ui">N</text><rect x="0" y="30" width="88" height="8" fill="rgba(0,0,0,.3)"/><text x="44" y="36" font-size="4.5" fill="rgba(255,255,255,.8)" text-anchor="middle" font-family="ui-monospace">820 × 360 px</text></svg>`;}
+function liProfile(c){return`<svg width="88" height="18" viewBox="0 0 88 18" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="88" height="18" rx="3" fill="${c}"/><rect x="0" y="0" width="88" height="18" fill="rgba(0,0,0,.2)"/><rect x="4" y="6" width="44" height="3" rx="1.5" fill="rgba(255,255,255,.85)"/><text x="84" y="15" font-size="4" fill="rgba(255,255,255,.5)" text-anchor="end" font-family="ui-monospace">1584×396</text></svg>`;}
+function liCompany(c){return`<svg width="88" height="13" viewBox="0 0 88 13" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="88" height="13" rx="2.5" fill="${c}"/><rect x="0" y="0" width="88" height="13" fill="rgba(0,0,0,.2)"/><rect x="4" y="4" width="38" height="2.5" rx="1.2" fill="rgba(255,255,255,.8)"/><text x="84" y="11" font-size="4" fill="rgba(255,255,255,.5)" text-anchor="end" font-family="ui-monospace">1128×191</text></svg>`;}
+function ytShorts(c){return`<svg width="46" height="82" viewBox="0 0 46 82" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="44" height="80" rx="7" fill="#111" stroke="#333" stroke-width="1"/><rect x="3" y="3" width="40" height="76" rx="5.5" fill="${c}"/><rect x="5" y="6" width="18" height="7" rx="2" fill="#F4A0A0"/><text x="14" y="11.5" font-size="4.5" fill="#fff" text-anchor="middle" font-family="system-ui" font-weight="700">Shorts</text><text x="38" y="35" font-size="8" fill="rgba(255,255,255,.85)" text-anchor="middle">♡</text><rect x="3" y="74" width="40" height="2" fill="rgba(255,255,255,.2)"/><rect x="3" y="74" width="17" height="2" fill="#F4A0A0"/><rect x="15" y="3" width="16" height="4" rx="2" fill="#111"/></svg>`;}
+function customBox(){return`<svg width="66" height="66" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="62" height="62" rx="8" fill="none" stroke="#7B8EF7" stroke-width="2" stroke-dasharray="6 3"/><text x="33" y="27" font-size="18" fill="#7B8EF7" text-anchor="middle">+</text><text x="33" y="40" font-size="8" fill="#7B8EF7" text-anchor="middle" font-family="system-ui" font-weight="700">Custom</text><text x="33" y="50" font-size="7" fill="#888" text-anchor="middle" font-family="system-ui">Tuỳ chỉnh</text></svg>`;}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ORDER DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const ORDERS=[
+  {id:1,title:'Banner Mạng xã hội Xuân 2025',team:'Admin Nhile',type:'Banner',status:'ASSIGNED',by:'Felix',designer:'Lê Văn A',dl:'2025-04-15',urg:true,th:[['#C4A8D4',0,0,100,100],['#B89CC8',20,0,80,100],['#FFD700',10,42,80,5],['#F39C12',10,55,55,3]],flag:null,progress:4,
+    metrics:{rounds:0,ontime:'Sớm 10 ngày',comms:3,briefCheck:true},
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'01/04 09:00',desc:'Felix gửi order từ team Admin Nhile.',checks:[{ok:true,text:'Brief đính kèm đầy đủ'},{ok:true,text:'Deadline rõ ràng: 15/04'},{ok:true,text:'Loại sản phẩm: Banner mạng xã hội'}]},
+      {id:'s2',name:'Designer nhận task',state:'done',time:'01/04 10:30',desc:'Lê Văn A nhận, hỏi làm rõ 2 điểm.',checks:[{ok:true,text:'Double-check brief với orderer ✓'},{ok:true,text:'Confirm hiểu yêu cầu màu sắc Tết'},{ok:true,text:'Hỏi 2 câu làm rõ về kích thước'}]},
+      {id:'s3',name:'Designer đang làm',state:'done',time:'01/04 – 05/04',desc:'Gửi draft sơ bộ ngày 03/04 để confirm hướng.',checks:[{ok:true,text:'Gửi draft confirm hướng ngày 03/04'},{ok:true,text:'Check-in với orderer ngày 04/04'}]},
+      {id:'s4',name:'Giao sản phẩm lần đầu',state:'done',time:'05/04 16:00 · sớm 10 ngày',timeClass:'early',desc:'Giao bản hoàn thiện đúng format, đủ file.',checks:[{ok:true,text:'Bản hoàn thiện — không phải draft'},{ok:true,text:'Đúng kích thước yêu cầu'},{ok:true,text:'Đính kèm đủ file gốc (.ai, .png)'}]},
+      {id:'s5',name:'Feedback & Chờ phản hồi',state:'active',time:'06/04 – đang chờ',desc:'Đã giao, chờ orderer review.',checks:[{ok:null,text:'Orderer xem và cho feedback'},{ok:null,text:'Designer double-check feedback trước khi chỉnh'},{ok:null,text:'Confirm từng điểm trước khi làm'}],actions:['Đã nhận feedback','Yêu cầu làm rõ']},
+      {id:'s6',name:'Chỉnh sửa (nếu cần)',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s7',name:'Hoàn thành & Bàn giao',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  },
+  {id:2,title:'Bộ Avatar Nhân viên mới Q2',team:'Nedu',type:'Ảnh Quote',status:'NOT_ASSIGNED',by:'Ms. Hồng',designer:null,dl:'2025-04-20',urg:false,th:[['#F5F3EF',0,0,100,100],['#E8E4DC',15,25,70,5],['#CCC',15,38,50,3]],flag:null,progress:1,
+    metrics:{rounds:0,ontime:'Còn 16 ngày',comms:0,briefCheck:false},
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'04/04 10:00',desc:'Ms. Hồng gửi order.',checks:[{ok:true,text:'Brief đầy đủ: 15 avatar, ảnh chân dung'},{ok:true,text:'Deadline: 20/04 — hợp lý'},{ok:true,text:'Format: PNG 1:1 & 4:5'}]},
+      {id:'s2',name:'Chờ designer nhận task',state:'active',time:'Đang chờ assign...',desc:'Chưa có designer nào nhận. Cần assign trong 24h.',checks:[{ok:null,text:'Assign designer phù hợp'},{ok:null,text:'Designer double-check brief sau khi nhận'}],actions:['Assign Designer ngay']},
+      {id:'s3',name:'Designer đang làm',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s4',name:'Giao sản phẩm',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s5',name:'Hoàn thành & Bàn giao',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  },
+  {id:3,title:'Slide bài giảng tháng 4',team:'Edit',type:'Thumbnail',status:'FEEDBACK',by:'Nhi Le',designer:'Trần Thị B',dl:'2025-04-10',urg:true,th:[['#8FAAC4',0,0,100,100],['#7A98B8',10,10,80,80],['#5BA3D9',10,20,70,5]],flag:'red',progress:6,
+    metrics:{rounds:3,ontime:'Trễ 3 ngày',comms:1,briefCheck:false},
+    redFlags:['Không double-check brief khi nhận task','Giao bản thảo sơ bộ thay vì chờ đợi giao 100% task','Đã 3 revision rounds nhưng vẫn chưa done','Chỉ 1 lần giao tiếp với orderer trong suốt quá trình'],
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'20/03 08:00',desc:'Nhi Le gửi order.',checks:[{ok:true,text:'Brief đính kèm'},{ok:false,text:'Deadline quá gấp — chỉ 21 ngày'},{ok:true,text:'Loại sản phẩm xác định'}]},
+      {id:'s2',name:'Designer nhận task',state:'done',time:'20/03 14:00',desc:'Trần Thị B nhận nhưng không hỏi gì.',checks:[{ok:false,text:'KHÔNG double-check brief — bắt tay làm luôn'},{ok:false,text:'Không hỏi về style, template yêu cầu'},{ok:true,text:'Xác nhận nhận task'}]},
+      {id:'s3',name:'Designer đang làm',state:'done',time:'20/03 – 08/04',desc:'19 ngày không check-in.',checks:[{ok:false,text:'Không check-in giữa chừng — 19 ngày im lặng'},{ok:false,text:'Không gửi draft confirm hướng'},{ok:false,text:'Không liên lạc dù gần deadline'}]},
+      {id:'s4',name:'Giao sản phẩm lần đầu',state:'done',time:'08/04 23:59 · trễ 3 ngày',timeClass:'late',desc:'Giao bản thảo sơ bộ, chưa hoàn thiện, thiếu file gốc.',checks:[{ok:false,text:'Giao bản thảo sơ bộ — nhiều element chưa hoàn chỉnh'},{ok:false,text:'Thiếu file source gốc (.psd/.ai)'},{ok:true,text:'Đúng kích thước thumbnail'}]},
+      {id:'s5',name:'Feedback Round 1',state:'done',time:'09/04',desc:'Orderer gửi 8 điểm feedback.',checks:[{ok:false,text:'Designer không double-check, chỉnh sai 3/8 điểm'},{ok:false,text:'Không confirm với orderer trước khi chỉnh'}]},
+      {id:'s6',name:'Chỉnh sửa Round 2',state:'done',time:'10/04',desc:'Vẫn sai các điểm từ round 1.',checks:[{ok:false,text:'3 điểm từ round 1 vẫn sai'},{ok:false,text:'Thêm 2 lỗi mới do không kiểm tra kỹ'}]},
+      {id:'s7',name:'Chỉnh sửa Round 3',state:'active',time:'11/04 – đang thực hiện',desc:'Round 3 — cần leader theo dõi sát.',checks:[{ok:null,text:'Confirm từng điểm với orderer trước khi giao'},{ok:null,text:'Leader review trước khi gửi'}],actions:['Đã chỉnh xong Round 3','🚨 Báo Leader can thiệp']},
+      {id:'s8',name:'Hoàn thành & Bàn giao',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  },
+  {id:4,title:'Poster Tuyển dụng IT',team:'It',type:'Poster',status:'DONE',by:'Anh Tech',designer:'Felix',dl:'2025-03-20',urg:false,th:[['#111',0,0,100,100],['#1C1C1C',15,15,70,70],['#D4AF37',20,46,60,3]],flag:null,progress:7,
+    metrics:{rounds:1,ontime:'Sớm 3 ngày',comms:4,briefCheck:true},
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'10/03',desc:'',checks:[{ok:true,text:'Brief đầy đủ'},{ok:true,text:'Deadline rõ: 20/03'}]},
+      {id:'s2',name:'Designer nhận task',state:'done',time:'10/03 · 2 giờ sau',desc:'',checks:[{ok:true,text:'Double-check brief ✓'},{ok:true,text:'Hỏi 1 câu về màu brand'}]},
+      {id:'s3',name:'Designer đang làm',state:'done',time:'10/03 – 17/03',desc:'',checks:[{ok:true,text:'Check-in ngày 14/03'},{ok:true,text:'Gửi draft sơ bộ xác nhận hướng'}]},
+      {id:'s4',name:'Giao sản phẩm lần đầu',state:'done',time:'17/03 · sớm 3 ngày',timeClass:'early',desc:'',checks:[{ok:true,text:'Bản hoàn thiện'},{ok:true,text:'Đủ file gốc'}]},
+      {id:'s5',name:'Feedback & Chỉnh sửa',state:'done',time:'18/03 · 1 round',desc:'',checks:[{ok:true,text:'Chỉnh đúng tất cả điểm ngay lần đầu'}]},
+      {id:'s6',name:'Hoàn thành & Bàn giao',state:'done',time:'19/03 ✓',desc:'Done trước deadline 1 ngày.',checks:[{ok:true,text:'Orderer xác nhận 100% hài lòng'},{ok:true,text:'Đủ tất cả file bàn giao'}]},
+    ]
+  },
+  {id:5,title:'Ảnh Quote Motivation Daily',team:'Ms Nhi',type:'Ảnh Quote',status:'ASSIGNED',by:'Ms Nhi',designer:'Lê Văn A',dl:'2025-04-08',urg:false,th:[['#FFE4F0',0,0,100,100],['#FFD6EC',0,0,50,100],['#E8C5F0',50,0,50,100]],flag:null,progress:3,
+    metrics:{rounds:0,ontime:'Còn 4 ngày',comms:2,briefCheck:true},
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'01/04',desc:'',checks:[{ok:true,text:'Brief đầy đủ — 5 quotes, pastel style'}]},
+      {id:'s2',name:'Designer nhận task',state:'done',time:'01/04 · 1 giờ sau',desc:'',checks:[{ok:true,text:'Double-check brief ✓'},{ok:true,text:'Confirm màu pastel, font script'}]},
+      {id:'s3',name:'Designer đang làm',state:'active',time:'01/04 – đang thực hiện',desc:'',checks:[{ok:true,text:'Check-in ngày 03/04'},{ok:null,text:'Gửi draft 1 bản để confirm style'}],actions:['Gửi draft confirm','Check-in với orderer']},
+      {id:'s4',name:'Giao sản phẩm',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s5',name:'Hoàn thành & Bàn giao',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  },
+  {id:6,title:'Thumbnail Youtube Series mới',team:'nlt',type:'Thumbnail',status:'NOT_ASSIGNED',by:'Content',designer:null,dl:'2025-04-01',urg:true,th:[['#A8B8F4',0,0,100,100],['#8FA6EF',30,0,70,100],['#fff',10,38,60,5]],flag:'warn',progress:1,
+    metrics:{rounds:0,ontime:'QUÁ HẠN',comms:0,briefCheck:false},
+    redFlags:['Brief thiếu thông tin kích thước thumbnail','Đã quá deadline (01/04) chưa có designer nhận','Order chưa được xử lý — cần assign khẩn cấp'],
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'28/03',desc:'',checks:[{ok:false,text:'Brief thiếu thông tin kích thước'},{ok:true,text:'Deadline: 01/04'},{ok:false,text:'Không đủ thời gian — chỉ 3 ngày'}]},
+      {id:'s2',name:'Chờ designer nhận task',state:'flagged',time:'01/04 · ĐÃ QUÁ HẠN',timeClass:'late',desc:'Đã quá deadline 3 ngày, vẫn chưa có designer!',checks:[{ok:false,text:'Đã quá deadline, vẫn chưa assign'},{ok:false,text:'Không có ai nhận responsibility'}],actions:['Assign khẩn cấp','🚨 Báo Leader ngay']},
+      {id:'s3',name:'Designer đang làm',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s4',name:'Hoàn thành',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  },
+  {id:7,title:'Standee Workshop tháng 4',team:'Nedu',type:'Poster',status:'ASSIGNED',by:'Manager',designer:'Trần Thị B',dl:'2025-04-25',urg:false,th:[['#F5E6C8',0,0,100,100],['#D4A853',10,10,80,5],['#A0522D',18,46,64,38]],flag:null,progress:3,
+    metrics:{rounds:0,ontime:'Còn 20 ngày',comms:5,briefCheck:true},
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:'05/04',desc:'',checks:[{ok:true,text:'Brief rất chi tiết: kích thước 60x160cm'},{ok:true,text:'Deadline: 25/04 — hợp lý'},{ok:true,text:'Có ảnh tham khảo đính kèm'}]},
+      {id:'s2',name:'Designer nhận task',state:'done',time:'05/04 · 30 phút sau',desc:'',checks:[{ok:true,text:'Double-check brief ngay ✓'},{ok:true,text:'Hỏi 3 câu: màu brand, font, logo version'}]},
+      {id:'s3',name:'Designer đang làm',state:'active',time:'05/04 – đang thực hiện',desc:'Giao tiếp tốt, draft đã approve hướng.',checks:[{ok:true,text:'Gửi draft ngày 07/04 — orderer approve hướng'},{ok:null,text:'Dự kiến giao bản hoàn thiện 20/04'}],actions:['Giao bản hoàn thiện','Hỏi thêm yêu cầu']},
+      {id:'s4',name:'Giao sản phẩm',state:'pending',time:'Dự kiến 20/04',desc:'',checks:[]},
+      {id:'s5',name:'Hoàn thành & Bàn giao',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  },
+];
+
+const SM={NOT_ASSIGNED:{l:'Chờ nhận',c:'s-na'},ASSIGNED:{l:'Đang làm',c:'s-as'},FEEDBACK:{l:'Feedback',c:'s-fb'},DONE:{l:'Hoàn thành',c:'s-dn'}};
+const PROG_LABELS=['Order gửi','Nhận task','Đang làm','Giao lần 1','Feedback','Chỉnh sửa','Hoàn thành'];
+const PROG_COLORS={1:'#A0A0A0',2:'#7B8EF7',3:'#7B8EF7',4:'#F4B08A',5:'#B8A9E8',6:'#F4B08A',7:'#5BB89A'};
+
+function mkSVG(sh){let s='';sh.forEach(([c,x,y,w,h])=>{s+=`<rect x="${x}%" y="${y}%" width="${w}%" height="${h}%" fill="${c}"/>`;});return`<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DASHBOARD GRID
+// ═══════════════════════════════════════════════════════════════════════════
+function renderGrid(f){
+  const el=document.getElementById('og');el.innerHTML='';
+  const list=ORDERS.filter(o=>{
+    if(f==='pending')return o.status==='NOT_ASSIGNED';
+    if(f==='active')return o.status==='ASSIGNED'||o.status==='FEEDBACK';
+    if(f==='done')return o.status==='DONE';
+    if(f==='flag')return!!o.flag;
+    return true;
+  });
+  document.getElementById('cnt').textContent=`· ${list.length} tasks`;
+  list.forEach(o=>{
+    const st=SM[o.status];
+    const pct=Math.round((o.progress/7)*100);
+    const pcol=PROG_COLORS[o.progress]||'#A0A0A0';
+    const plbl=PROG_LABELS[o.progress-1]||'Chờ gửi';
+    let flagHtml='';
+    if(o.flag==='red')flagHtml=`<div class="flag-icon red"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>`;
+    else if(o.flag==='warn')flagHtml=`<div class="flag-icon warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>`;
+    const isLate=o.metrics.ontime.includes('QUÁ')||o.metrics.ontime.includes('Trễ');
+    const isEarly=o.metrics.ontime.includes('Sớm');
+    const d=document.createElement('div');
+    d.className=`oc${o.flag?' flag-'+o.flag:''}`;
+    d.onclick=()=>openPanel(o.id);
+    d.innerHTML=`
+      <div class="oc-th">${mkSVG(o.th)}<div class="oc-badges"><div class="sbdg ${st.c}"><div class="sdot"></div>${st.l}</div>${o.urg?'<div class="sbdg s-ug">GẤP</div>':''}</div>${flagHtml}</div>
+      <div class="oc-body">
+        <div class="oc-meta"><span class="oc-team">${o.team}</span><span class="oc-by">${o.by}</span></div>
+        <div class="oc-title">${o.title}</div>
+        <div class="oc-progress">
+          <div class="oc-prog-lbl"><span class="opl-step">${plbl}</span><span class="opl-pct" style="color:${pcol}">${pct}%</span></div>
+          <div class="oc-prog-bar"><div class="oc-prog-fill" style="width:${pct}%;background:${pcol}"></div></div>
+        </div>
+        <div class="oc-footer">
+          <div>
+            <div class="od-date"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>&nbsp;${new Date(o.dl).toLocaleDateString('vi-VN')}</div>
+            ${isLate?`<div class="od-late">⚠ ${o.metrics.ontime}</div>`:isEarly?`<div class="od-early">✓ ${o.metrics.ontime}</div>`:''}
+          </div>
+          <button class="track-btn" onclick="event.stopPropagation();openPanel(${o.id})">Tracking →</button>
+        </div>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+function fTab(btn,f){document.querySelectorAll('.ft').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGrid(f);}
+renderGrid('all');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRACKING PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+let currentOrderId=null;
+function openPanel(id){
+  currentOrderId=id;
+  const o=ORDERS.find(x=>x.id===id);if(!o)return;
+  document.getElementById('sp-title').textContent=o.title;
+  document.getElementById('sp-sub').textContent=`${o.type} · ${o.team} · Designer: ${o.designer||'Chưa assign'}`;
+  document.getElementById('spBody').innerHTML=buildPanel(o);
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('slidePanel').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('slidePanel').classList.remove('open');
+  currentOrderId=null;
+}
+function buildPanel(o){
+  let h='';
+  if(o.redFlags&&o.redFlags.length){
+    h+=`<div class="sp-alert red"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg><div><b>⚠ Cần leader can thiệp ngay</b>${o.redFlags.map(f=>`<div style="margin-top:3px">· ${f}</div>`).join('')}<button class="tl-btn danger" style="margin-top:10px" onclick="openInt(${o.id})">🚨 Gắn cờ cho Leader</button></div></div>`;
+  }else if(o.flag==='warn'){
+    h+=`<div class="sp-alert warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div><b>Cảnh báo — Cần xử lý sớm</b><div>Brief chưa đầy đủ, order chưa được assign, đã quá deadline.</div></div></div>`;
+  }
+  if(!o.metrics.briefCheck&&o.steps.find(s=>s.id==='s2'&&s.state==='done')){
+    h+=`<div class="sp-alert warn"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div><b>Designer không double-check brief</b><div>Nguyên nhân hàng đầu gây revision nhiều lần.</div></div></div>`;
+  }
+  h+=`<div class="sp-sec">Chỉ số tracking <div class="sp-sec-line"></div></div>`;
+  h+=`<div class="metrics">`;
+  const rc=o.metrics.rounds;
+  h+=`<div class="metric ${rc>=3?'bad':rc>=2?'warn-m':'good'}"><div class="metric-val">${rc}</div><div class="metric-lbl">Revision rounds</div></div>`;
+  const ot=o.metrics.ontime;
+  h+=`<div class="metric ${ot.includes('QUÁ')||ot.includes('Trễ')?'bad':ot.includes('Sớm')?'good':''}"><div class="metric-val" style="font-size:${ot.length>8?'11px':'17px'}">${ot}</div><div class="metric-lbl">Tiến độ</div></div>`;
+  const cc=o.metrics.comms;
+  h+=`<div class="metric ${cc<=1?'bad':cc<=2?'warn-m':'good'}"><div class="metric-val">${cc}</div><div class="metric-lbl">Giao tiếp</div></div>`;
+  h+=`</div>`;
+  const bcColor=o.metrics.briefCheck?'var(--ok)':'var(--red)';
+  const bcBg=o.metrics.briefCheck?'var(--okl)':'var(--redl)';
+  const bcBorder=o.metrics.briefCheck?'#BBF7D0':'#FECACA';
+  h+=`<div style="background:${bcBg};border:1px solid ${bcBorder};border-radius:9px;padding:10px 12px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:11px">
+    <div style="width:28px;height:28px;border-radius:8px;background:${bcColor};display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">${o.metrics.briefCheck?'<polyline points="20 6 9 17 4 12"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}</svg></div>
+    <div><div style="font-weight:700;color:${bcColor}">Brief Double-Check: ${o.metrics.briefCheck?'Đã thực hiện ✓':'CHƯA thực hiện ✗'}</div><div style="color:var(--g600);margin-top:1px">${o.metrics.briefCheck?'Designer đã xác nhận hiểu brief trước khi làm.':'Designer chưa xác nhận — nguy cơ cao bị revision.'}</div></div>
+  </div>`;
+  h+=`<div class="sp-sec">Timeline tiến độ <div class="sp-sec-line"></div></div>`;
+  h+=`<div class="tl">`;
+  o.steps.forEach((step,i)=>{
+    const isLast=i===o.steps.length-1;
+    const sc=step.state;
+    let dotIcon=sc==='done'?'<polyline points="20 6 9 17 4 12"/>':sc==='active'?'<circle cx="12" cy="12" r="3" fill="#fff"/>':sc==='flagged'?'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>':'<circle cx="12" cy="12" r="4" stroke-dasharray="2 2"/>';
+    h+=`<div class="tl-step ${sc}">`;
+    if(!isLast){const lc=sc==='done'?'done':sc==='active'?'active':'pending';h+=`<div class="tl-line-v ${lc}"></div>`;}
+    h+=`<div class="tl-dot-col"><div class="tl-dot"><svg width="12" height="12" viewBox="0 0 24 24">${dotIcon}</svg></div></div>`;
+    h+=`<div class="tl-content">`;
+    h+=`<div class="tl-header"><span class="tl-name">${step.name}</span>${step.time?`<span class="tl-time ${step.timeClass||''}">${step.time}</span>`:''}</div>`;
+    if(step.desc)h+=`<div class="tl-desc">${step.desc}</div>`;
+    if(step.checks&&step.checks.length){
+      h+=`<div class="tl-checks">`;
+      step.checks.forEach(c=>{
+        const cls=c.ok===true?'ok':c.ok===false?'no':'pend';
+        const ico=c.ok===true?'<polyline points="20 6 9 17 4 12"/>':c.ok===false?'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>':'<circle cx="12" cy="12" r="5" stroke-dasharray="3 2"/>';
+        h+=`<div class="tl-chk ${cls}"><svg viewBox="0 0 24 24" fill="none">${ico}</svg>${c.text}</div>`;
+      });
+      h+=`</div>`;
+    }
+    if(step.actions&&step.actions.length&&(sc==='active'||sc==='flagged')){
+      h+=`<div class="tl-actions">`;
+      step.actions.forEach((a,ai)=>{
+        const isDanger=a.includes('🚨')||a.includes('Leader')||a.includes('leader');
+        const isPrimary=ai===0&&!isDanger;
+        h+=`<button class="tl-btn ${isPrimary?'primary':''} ${isDanger?'danger':''}" onclick="handleAction('${a.replace(/'/g,"\\'")}',${currentOrderId||0})">${a}</button>`;
+      });
+      h+=`</div>`;
+    }
+    h+=`</div></div>`;
+  });
+  h+=`</div>`;return h;
+}
+function handleAction(action,orderId){
+  if(action.includes('🚨')||action.includes('Leader')||action.includes('leader')){openInt(orderId||currentOrderId);}
+  else{const btn=event.target;btn.textContent='✓ Đã ghi nhận';btn.style.background='var(--okl)';btn.style.color='var(--ok)';btn.style.borderColor='#BBF7D0';btn.disabled=true;}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INTERVENTION MODAL
+// ═══════════════════════════════════════════════════════════════════════════
+let intOrderId=null;
+function openInt(id){
+  intOrderId=id;
+  const o=ORDERS.find(x=>x.id===id);if(!o)return;
+  document.getElementById('intDesc').textContent=`Order "${o.title}" có dấu hiệu cần leader can thiệp ngay.`;
+  const flags=o.redFlags||['Order cần được theo dõi sát hơn'];
+  document.getElementById('intFlags').innerHTML=flags.map(f=>`<div class="int-flag"><svg viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>${f}</div>`).join('');
+  document.getElementById('intOverlay').classList.add('open');
+}
+function closeInt(){document.getElementById('intOverlay').classList.remove('open');}
+function confirmInt(){
+  const o=ORDERS.find(x=>x.id===intOrderId);
+  if(o)alert(`✅ Đã gắn cờ cho Leader!\n\nOrder: "${o.title}"\n\nLeader sẽ nhận thông báo và vào xem xét ngay.`);
+  closeInt();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ORDER FORM — PRODUCT TYPES
+// ═══════════════════════════════════════════════════════════════════════════
+const TYPES=[
+  {id:'q',name:'Ảnh Quote / Hình vuông',ico:'M3 3h18v18H3zM8 8h8v8H8z',items:[
+    {n:'Instagram Feed',s:'1200×1200',pl:'Instagram',mk:()=>phoneSquare('#C41E8A')},
+    {n:'LinkedIn / Facebook Post',s:'1200×1200',pl:'LinkedIn · Facebook',mk:()=>phoneSquare('#0A66C2')},
+    {n:'Pinterest Pin',s:'1000×1500',pl:'Pinterest',mk:()=>pinterest('#E60023')},
+  ]},
+  {id:'b',name:'Banner / Cover',ico:'M2 7h20v10H2z',items:[
+    {n:'Facebook Cover',s:'820×360',pl:'Facebook',mk:()=>fbCover('#1877F2')},
+    {n:'YouTube Channel Banner',s:'2560×1440',pl:'YouTube',mk:()=>ytBanner('#FF0000')},
+    {n:'LinkedIn Profile Cover',s:'1584×396',pl:'LinkedIn',mk:()=>liProfile('#0A66C2')},
+    {n:'LinkedIn Company Banner',s:'1128×191',pl:'LinkedIn',mk:()=>liCompany('#0A66C2')},
+  ]},
+  {id:'p',name:'Poster / Dọc',ico:'M7 2h10v20H7z',items:[
+    {n:'Instagram Story / Reel / TikTok',s:'1080×1920',pl:'Instagram · TikTok',mk:()=>igReel('#833AB4')},
+    {n:'Facebook Story',s:'1080×1920',pl:'Facebook',mk:()=>phoneStory('#1877F2')},
+    {n:'Pinterest Pin Dọc',s:'1000×1500',pl:'Pinterest',mk:()=>pinterest('#E60023')},
+    {n:'YouTube Shorts',s:'1080×1920',pl:'YouTube',mk:()=>ytShorts('#0F0F0F')},
+  ]},
+  {id:'t',name:'Thumbnail',ico:'M2 5h20v14H2zM8 5v14',items:[
+    {n:'YouTube Thumbnail',s:'1280×720',pl:'YouTube',mk:()=>ytThumb('#1A1A2E')},
+    {n:'Reels Thumbnail (Instagram)',s:'1080×1920',pl:'Instagram',mk:()=>igReel('#F56040')},
+    {n:'TikTok Cover',s:'1080×1920',pl:'TikTok',mk:()=>tiktok('#010101')},
+    {n:'Facebook Reels Thumbnail',s:'1080×1920',pl:'Facebook',mk:()=>phoneStory('#1877F2')},
+  ]},
+  {id:'c',name:'Custom / Tuỳ chỉnh',ico:'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',items:[
+    {n:'Custom / Khác',s:'Ghi trong brief',pl:'Tuỳ chỉnh kích thước',mk:()=>customBox()},
+  ]},
+];
+const STYLES=[
+  {n:'Minimalist',d:'Tối giản',bg:'#F5F3EF',sh:[['#E8E4DC',10,18,80,4],['#CCC',10,30,55,3]]},
+  {n:'Bold Vibrant',d:'Màu đậm nổi bật',bg:'#FF3B30',sh:[['#FF9500',0,0,50,100],['#fff',14,36,65,5]]},
+  {n:'Pastel Soft',d:'Nhẹ nhàng dịu mắt',bg:'#FFE8F4',sh:[['#E8C8F0',50,0,50,100]]},
+  {n:'Dark Luxury',d:'Tối sang trọng',bg:'#111',sh:[['#1C1C1C',8,8,84,84],['#D4AF37',10,44,68,3]]},
+  {n:'Retro',d:'Hoài niệm vintage',bg:'#F5E6C8',sh:[['#D4A853',10,10,80,5]]},
+  {n:'Corporate',d:'Chuyên nghiệp',bg:'#0D1B2A',sh:[['#1B3A5C',0,50,100,50]]},
+];
+const COLORS=[{h:'#F4A0A0',n:'Đỏ pastel'},{h:'#F9C797',n:'Cam pastel'},{h:'#F5E17A',n:'Vàng pastel'},{h:'#7BCBA8',n:'Xanh lá'},{h:'#7B8EF7',n:'Lavender'},{h:'#C4A8E0',n:'Tím pastel'},{h:'#9B97BE',n:'Tím xám'},{h:'#8E8E93',n:'Xám'},{h:'#E8D4A0',n:'Kem vàng'},{h:'#F4A0BE',n:'Hồng pastel'}];
+const AI_EX=['Tối giản Nhật Bản','Đỏ vàng Tết','Pastel hồng tím','Dark luxury gold','Corporate navy xanh'];
+const MOODS={
+  minimal:{pal:['#F5F3EF','#E0DDD5','#888','#1C1C1E','#FFF'],cells:[['#F5F3EF',[['#E8E4DC',10,18,80,4]]],['#1C1C1E',[['#2C2C2E',14,10,72,80]]],['#EEECEA',[['#D8D4CC',10,30,80,42]]],['#F0EEE9',[['#E0DDD5',5,5,90,90]]],['#FAFAF8',[['#E8E4DC',10,18,40,62]]],['#2D2D3A',[['#3D3A50',18,18,64,64]]]]},
+  dark:{pal:['#0A0A0A','#1C1C1C','#2C2C2C','#D4AF37','#B8960C'],cells:[['#0A0A0A',[['#111',4,4,92,92],['#D4AF37',10,40,62,3]]],['#1C1C1C',[['#2C2C2C',18,10,64,80]]],['#D4AF37',[['#0A0A0A',10,30,80,4]]],['#111',[['#D4AF37',0,46,100,2]]],['#0D0D0D',[['#1C1C1C',2,2,46,96]]],['#2C2C2C',[['#D4AF37',14,46,72,3]]]]},
+  default:{pal:['#EEF0FE','#7B8EF7','#5B6FE8','#2D2D3A','#F5F4FA'],cells:[['#EEF0FE',[['#7B8EF7',10,18,80,4]]],['#7B8EF7',[['#5B6FE8',14,10,72,80]]],['#F5F3EF',[['#E8E4DC',10,30,80,42]]],['#2D2D3A',[['#3D3A50',5,5,90,90]]],['#EBF2FF',[['#A8B8F4',10,18,40,62]]],['#5B6FE8',[['#4857D4',18,18,64,64]]]]}
+};
+const LAYOUTS=[
+  [{c:1,r:1,cs:2,rs:1,h:110},{c:3,r:1,cs:1,rs:2,h:176},{c:1,r:2,cs:1,rs:1,h:92},{c:2,r:2,cs:1,rs:1,h:92},{c:1,r:3,cs:2,rs:1,h:104},{c:3,r:3,cs:1,rs:1,h:104}],
+  [{c:1,r:1,cs:1,rs:2,h:176},{c:2,r:1,cs:2,rs:1,h:86},{c:2,r:2,cs:1,rs:1,h:86},{c:3,r:2,cs:1,rs:1,h:86},{c:1,r:3,cs:2,rs:1,h:104},{c:3,r:3,cs:1,rs:1,h:104}]
+];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ORDER FORM STATE & HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+let oCur=0,oSelT=null,oLastAI=null;
+const oImgs=[];
+
+function oMSVG(shapes,bg){let s=`<rect width="100%" height="100%" fill="${bg}"/>`;(shapes||[]).forEach(([c,x,y,w,h])=>{s+=`<rect x="${x}%" y="${y}%" width="${w}%" height="${h}%" fill="${c}"/>`;});return`<svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;}
+function oDetectMood(kws){const s=(kws||[]).join(' ').toLowerCase();if(s.match(/minimal|white|clean|zen/))return'minimal';if(s.match(/dark|black|luxury|gold/))return'dark';return'default';}
+
+function oBuildTG(){
+  const el=document.getElementById('otg');el.innerHTML='';
+  TYPES.forEach(g=>{
+    const d=document.createElement('div');d.className='tg';d.id='otgg-'+g.id;
+    d.innerHTML=`<div class="tg-hdr" onclick="oTogTG('${g.id}')"><svg class="tg-ico" viewBox="0 0 24 24"><path d="${g.ico}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="tg-nm">${g.name}</span><span class="tg-ct">${g.items.length} loại</span><svg class="tg-ar" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+    <div class="tg-body" id="otgb-${g.id}">${g.items.map((it,i)=>`<div class="tc" id="otc-${g.id}-${i}" onclick="oPickT('${g.id}',${i},'${it.n.replace(/'/g,"\\'")}','${it.s}')"><div class="tc-mock">${it.mk()}</div><div class="tc-meta"><div class="tc-nm">${it.n}</div><div class="tc-sz">${it.s} px</div><div class="tc-pl">${it.pl}</div></div></div>`).join('')}</div>`;
+    el.appendChild(d);
+  });
+}
+function oBuildSG(){
+  const el=document.getElementById('osgG');el.innerHTML='';
+  STYLES.forEach(s=>{
+    const d=document.createElement('div');d.className='scc';
+    d.onclick=()=>{document.querySelectorAll('#osgG .scc').forEach(c=>c.classList.remove('sel'));d.classList.add('sel')};
+    let sh=`<rect width="100%" height="100%" fill="${s.bg}"/>`;
+    (s.sh||[]).forEach(([c,x,y,w,h])=>{sh+=`<rect x="${x}%" y="${y}%" width="${w}%" height="${h}%" fill="${c}"/>`;});
+    d.innerHTML=`<div class="scc-art"><svg viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${sh}</svg></div><div class="scc-label"><div class="scc-nm">${s.n}</div><div class="scc-d">${s.d}</div></div>`;
+    el.appendChild(d);
+  });
+}
+function oBuildCG(){
+  const el=document.getElementById('ocgG');el.innerHTML='';
+  COLORS.forEach(c=>{
+    const w=document.createElement('div');w.className='ci';
+    w.innerHTML=`<div class="csw" style="background:${c.h}" onclick="oSelC(this)"><svg viewBox="0 0 24 24" width="11" height="11"><polyline points="20 6 9 17 4 12" stroke="#fff" fill="none" stroke-width="3"/></svg></div><div class="cn">${c.n}</div>`;
+    el.appendChild(w);
+  });
+}
+function oBuildUG(){
+  const el=document.getElementById('ougG');el.innerHTML='';
+  oImgs.forEach((u,i)=>{const s=document.createElement('div');s.className='us';s.innerHTML=`<img src="${u}" alt=""/><div class="urm" onclick="oRmI(${i})"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`;el.appendChild(s);});
+  const rem=Math.min(4,8-oImgs.length);
+  for(let i=0;i<rem;i++){const s=document.createElement('div');s.className='us';s.onclick=()=>document.getElementById('ombF').click();s.innerHTML=`<div class="upl"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>Thêm ảnh</span></div>`;el.appendChild(s);}
+}
+function oBuildAIEx(){document.getElementById('oaiEx').innerHTML=AI_EX.map(e=>`<button class="ai-ex" onclick="document.getElementById('oaiI').value='${e}'">${e}</button>`).join('');}
+function oBuildBoard(){
+  if(!oLastAI)return;
+  const kws=oLastAI.unsplash_keywords||[];
+  const mk=MOODS[oDetectMood(kws)]||MOODS.default;
+  const L=LAYOUTS[Math.floor(Math.random()*LAYOUTS.length)];
+  const el=document.getElementById('ombC');el.innerHTML='';
+  el.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;border-radius:8px;overflow:hidden';
+  L.forEach((l,i)=>{
+    const[bg,shapes]=mk.cells[i%mk.cells.length];
+    const c=document.createElement('div');c.className='mb-c';
+    c.style.cssText=`grid-column:${l.c}/span ${l.cs};grid-row:${l.r}/span ${l.rs};height:${l.h}px`;
+    c.innerHTML=oMSVG(shapes,bg);
+    if(kws[i]){const lb=document.createElement('div');lb.style.cssText='position:absolute;bottom:4px;left:5px;font-size:7px;font-weight:600;color:rgba(255,255,255,.75);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.5)';lb.textContent=kws[i];c.style.position='relative';c.appendChild(lb);}
+    el.appendChild(c);
+  });
+  const pal=oLastAI.palette||mk.pal;
+  document.getElementById('ombP').innerHTML=pal.map(c=>`<div class="mb-ps" style="background:${c}"></div>`).join('');
+  document.getElementById('ombBL').textContent=oLastAI.mood_label||'Moodboard';
+  document.getElementById('ombBd').style.display='block';
+}
+
+function oTogTG(id){document.getElementById('otgg-'+id).classList.toggle('open');}
+function oPickT(gid,idx,name,size){document.querySelectorAll('.tc').forEach(c=>c.classList.remove('sel'));document.getElementById(`otc-${gid}-${idx}`).classList.add('sel');oSelT={name,size};document.getElementById('ost').textContent=`${name} — ${size} px`;document.getElementById('osb').classList.add('show');}
+function oSelC(el){document.querySelectorAll('#ocgG .csw').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');}
+function oSwP(id,btn){document.querySelectorAll('.mbt').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.mbp').forEach(p=>p.classList.remove('on'));btn.classList.add('on');document.getElementById('op-'+id).classList.add('on');}
+function oHUp(e){Array.from(e.target.files).forEach(f=>{if(oImgs.length<8)oImgs.push(URL.createObjectURL(f))});oBuildUG();e.target.value='';}
+function oRmI(i){oImgs.splice(i,1);oBuildUG();}
+
+async function oRunAI(){
+  const q=document.getElementById('oaiI').value.trim();if(!q)return;
+  const btn=document.getElementById('oaiG'),out=document.getElementById('oaiO');
+  btn.disabled=true;btn.textContent='Đang phân tích...';
+  out.innerHTML='<span style="color:var(--g400)">✦ Claude đang phân tích...</span>';
+  document.getElementById('ombBd').style.display='none';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:`Art director. CHỈ JSON thuần: {"summary":"1-2 câu tiếng Việt","palette":["#h1","#h2","#h3","#h4","#h5"],"fonts":["F1","F2"],"tips":["t1","t2","t3"],"unsplash_keywords":["en1","en2","en3","en4","en5","en6"],"mood_label":"2-3 từ tiếng Việt"}`,messages:[{role:'user',content:'Phong cách: '+q}]})});
+    const data=await r.json();if(data.error)throw new Error(data.error.message);
+    const txt=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+    oLastAI=JSON.parse(txt);
+    out.innerHTML=`<div style="font-weight:700;color:var(--blk);margin-bottom:6px">${oLastAI.summary}</div><div style="font-size:11px;color:var(--g400);margin-bottom:6px">Font: <b style="color:var(--blk)">${oLastAI.fonts.join(' + ')}</b></div><div style="display:flex;gap:4px;margin-bottom:8px">${oLastAI.palette.map(c=>`<span style="display:inline-block;width:22px;height:22px;background:${c};border-radius:6px;border:1px solid rgba(0,0,0,.1)" title="${c}"></span>`).join('')}</div>${oLastAI.tips.map(t=>`<div style="font-size:11px;color:var(--g600);margin-top:3px;display:flex;gap:5px"><span style="color:var(--acc)">→</span>${t}</div>`).join('')}`;
+    oBuildBoard();
+  }catch(e){out.innerHTML=`<span style="color:var(--g400)">Lỗi API. Cần kết nối internet và API key.</span>`;}
+  btn.disabled=false;btn.textContent='Phân tích';
+}
+
+function oBuildConf(){
+  const rows=[['Người order',document.getElementById('oiN').value||'—'],['Team',document.getElementById('oiT').value],['Tên task',document.getElementById('oiTi').value||'—'],['Loại sản phẩm',oSelT?`${oSelT.name} (${oSelT.size} px)`:'Chưa chọn'],['Deadline',document.getElementById('oiD').value?new Date(document.getElementById('oiD').value).toLocaleDateString('vi-VN'):'—'],['Task gấp',document.getElementById('out').classList.contains('on')?'Có ⚡':'Không'],['Brief',document.getElementById('oiB').value||'—'],['Moodboard',oLastAI?oLastAI.mood_label||'AI phân tích':oImgs.length?oImgs.length+' ảnh upload':'—']];
+  document.getElementById('ocr').innerHTML=rows.map(([k,v])=>`<div class="cr"><span class="cr-k">${k}</span><span class="cr-v">${v}</span></div>`).join('');
+}
+
+function oUpdateModal(){
+  const steps=document.querySelectorAll('.oms');
+  steps.forEach((s,i)=>{s.className='oms'+(i===oCur?' on':i<oCur?' dn':'');const n=s.querySelector('.oms-n');if(i<oCur)n.innerHTML='<svg width="9" height="9" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" stroke="#fff" fill="none" stroke-width="2.5"/></svg>';else n.textContent=i+1;});
+  ['os0','os1','os2','os3'].forEach((id,i)=>document.getElementById(id).style.display=i===oCur?'block':'none');
+  document.getElementById('oBtnBk').style.display=oCur>0?'block':'none';
+  document.getElementById('ompf').style.width=((oCur+1)/4*100)+'%';
+  const lbl=document.getElementById('oBL'),ico=document.getElementById('oBI');
+  if(oCur===3){lbl.textContent='Gửi order';ico.innerHTML='<line x1="22" y1="2" x2="11" y2="13" stroke="#fff" fill="none" stroke-width="2"/><polygon points="22 2 15 22 11 13 2 9 22 2" stroke="#fff" fill="none" stroke-width="2"/>';}
+  else{lbl.textContent='Tiếp theo';ico.innerHTML='<line x1="5" y1="12" x2="19" y2="12" stroke="#fff" fill="none" stroke-width="2"/><polyline points="12 5 19 12 12 19" stroke="#fff" fill="none" stroke-width="2"/>';}
+  document.getElementById('omb').scrollTop=0;
+}
+
+function oNav(d){
+  if(d===1&&oCur===3){oSubmit();return;}
+  if(d===1&&oCur===2)oBuildConf();
+  oCur=Math.max(0,Math.min(3,oCur+d));
+  oUpdateModal();
+}
+
+function oSubmit(){
+  // Add to ORDERS list
+  const newOrder={
+    id:Date.now(),
+    title:document.getElementById('oiTi').value||'Order mới',
+    team:document.getElementById('oiT').value,
+    type:oSelT?oSelT.name.split('/')[0].trim():'Custom',
+    status:'NOT_ASSIGNED',
+    by:document.getElementById('oiN').value||'—',
+    designer:null,
+    dl:document.getElementById('oiD').value||new Date(Date.now()+7*86400000).toISOString().split('T')[0],
+    urg:document.getElementById('out').classList.contains('on'),
+    th:[['#A8B8F4',0,0,100,100],['#8FA6EF',30,0,70,100]],
+    flag:null,progress:1,
+    metrics:{rounds:0,ontime:'Mới tạo',comms:0,briefCheck:false},
+    steps:[
+      {id:'s1',name:'Order được gửi',state:'done',time:new Date().toLocaleDateString('vi-VN'),desc:`Gửi bởi ${document.getElementById('oiN').value||'—'}.`,checks:[{ok:true,text:'Order đã được ghi nhận'},{ok:oSelT?true:null,text:oSelT?`Loại SP: ${oSelT.name}`:'Loại SP chưa chọn'}]},
+      {id:'s2',name:'Chờ designer nhận task',state:'active',time:'Đang chờ assign...',desc:'',checks:[{ok:null,text:'Assign designer phù hợp'},{ok:null,text:'Designer double-check brief sau khi nhận'}],actions:['Assign Designer ngay']},
+      {id:'s3',name:'Designer đang làm',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s4',name:'Giao sản phẩm',state:'pending',time:'',desc:'',checks:[]},
+      {id:'s5',name:'Hoàn thành & Bàn giao',state:'pending',time:'',desc:'',checks:[]},
+    ]
+  };
+  ORDERS.unshift(newOrder);
+  renderGrid('all');
+  document.getElementById('sbOrderCount').textContent=ORDERS.length;
+  // Show success
+  document.getElementById('omb').style.display='none';
+  document.getElementById('omFt').style.display='none';
+  document.getElementById('omst').style.display='none';
+  document.getElementById('omSv').classList.add('on');
+  document.getElementById('omSvId').textContent='#ND-'+Date.now().toString(36).toUpperCase().slice(-8);
+}
+
+function oResetAll(){
+  oCur=0;
+  document.getElementById('omb').style.display='block';
+  document.getElementById('omFt').style.display='flex';
+  document.getElementById('omst').style.display='flex';
+  document.getElementById('omSv').classList.remove('on');
+  document.getElementById('oiN').value='';document.getElementById('oiTi').value='';document.getElementById('oiD').value='';document.getElementById('oiB').value='';
+  document.getElementById('out').classList.remove('on');document.getElementById('oios').classList.remove('on');
+  oSelT=null;oLastAI=null;oImgs.length=0;
+  document.getElementById('osb').classList.remove('show');
+  document.getElementById('ombBd').style.display='none';
+  document.getElementById('oaiO').innerHTML='<span style="color:var(--g400)">Nhập mô tả phong cách và nhấn Phân tích.</span>';
+  oBuildUG();oBuildTG();oUpdateModal();
+}
+
+function openForm(){
+  document.getElementById('formOverlay').classList.add('open');
+}
+function closeForm(){
+  document.getElementById('formOverlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+oBuildTG();oBuildSG();oBuildCG();oBuildUG();oBuildAIEx();oUpdateModal();
+</script>
+</body>
+</html>
