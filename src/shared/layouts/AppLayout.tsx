@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 
 interface AppLayoutProps {
   children: React.ReactNode
   onCreateOrder?: () => void
+  activeNav?: string
+  title?: string
 }
 
 // Apple-style SVG icons — no emoji
@@ -58,17 +61,27 @@ const Icons = {
   ),
 }
 
-const navItems = [
-  { label: 'Order',      icon: Icons.orders,    active: true  },
-  { label: 'Analytics',  icon: Icons.analytics, active: false },
-  { label: 'Tools',      icon: Icons.tools,     active: false },
-  { label: 'Moodboard',  icon: Icons.moodboard, active: false },
-  { label: 'Feedback',   icon: Icons.feedback,  active: false },
+interface NavItem {
+  label: string
+  key: string
+  icon: React.ReactNode
+  route: string
+}
+
+const navItems: NavItem[] = [
+  { label: 'Order',      key: 'orders',    icon: Icons.orders,    route: '/dashboard' },
+  { label: 'Analytics',  key: 'analytics', icon: Icons.analytics, route: '/analytics' },
+  { label: 'Tools',      key: 'tools',     icon: Icons.tools,     route: '/tools' },
+  { label: 'Moodboard',  key: 'moodboard', icon: Icons.moodboard, route: '/moodboard' },
+  { label: 'Feedback',   key: 'feedback',  icon: Icons.feedback,  route: '/feedback' },
 ]
 
-export default function AppLayout({ children, onCreateOrder }: AppLayoutProps) {
+export default function AppLayout({ children, onCreateOrder, activeNav = 'orders', title }: AppLayoutProps) {
   const { data: user } = useCurrentUser()
   const [notifOpen, setNotifOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const pageTitle = title ?? 'Quản lý Order'
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: '#F5F5F7' }}>
@@ -84,27 +97,31 @@ export default function AppLayout({ children, onCreateOrder }: AppLayoutProps) {
 
         {/* Nav icons */}
         <nav className="flex flex-col gap-1 flex-1 w-full px-2">
-          {navItems.map((item) => (
-            <div key={item.label} className="relative group">
-              <button
-                className={`w-full h-11 rounded-[10px] flex items-center justify-center transition-all duration-150
-                  ${item.active
-                    ? 'text-[#5E5CE6]'
-                    : 'text-[#AEAEB2] hover:text-[#3A3A3C] hover:bg-black/[0.04]'
-                  }`}
-                style={item.active ? { background: 'rgba(94,92,230,0.1)' } : {}}
-              >
-                {item.icon}
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[#1D1D1F] text-white
-                text-[11px] font-semibold rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100
-                pointer-events-none transition-opacity z-50 shadow-lg">
-                {item.label}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#1D1D1F]"/>
+          {navItems.map((item) => {
+            const isActive = activeNav === item.key
+            return (
+              <div key={item.label} className="relative group">
+                <button
+                  onClick={() => navigate(item.route)}
+                  className={`w-full h-11 rounded-[10px] flex items-center justify-center transition-all duration-150
+                    ${isActive
+                      ? 'text-[#5E5CE6]'
+                      : 'text-[#AEAEB2] hover:text-[#3A3A3C] hover:bg-black/[0.04]'
+                    }`}
+                  style={isActive ? { background: 'rgba(94,92,230,0.1)' } : {}}
+                >
+                  {item.icon}
+                </button>
+                {/* Tooltip */}
+                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[#1D1D1F] text-white
+                  text-[11px] font-semibold rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100
+                  pointer-events-none transition-opacity z-50 shadow-lg">
+                  {item.label}
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[#1D1D1F]"/>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </nav>
 
         {/* User avatar */}
@@ -132,7 +149,7 @@ export default function AppLayout({ children, onCreateOrder }: AppLayoutProps) {
           }}>
           {/* Page title */}
           <h1 className="text-[15px] font-semibold text-[#1D1D1F] tracking-tight shrink-0">
-            Quản lý Order
+            {pageTitle}
           </h1>
 
           {/* Search */}
@@ -172,14 +189,16 @@ export default function AppLayout({ children, onCreateOrder }: AppLayoutProps) {
                 style={{ background: '#FF3B30' }}/>
             </button>
 
-            {/* Create order */}
-            <button onClick={onCreateOrder}
-              className="flex items-center gap-1.5 h-9 px-4 rounded-[10px] text-[13px] font-semibold text-white
-                transition-all hover:opacity-90 active:scale-[0.97]"
-              style={{ background: '#5E5CE6' }}>
-              {Icons.plus}
-              Tạo order
-            </button>
+            {/* Create order — only show if callback is provided */}
+            {onCreateOrder && (
+              <button onClick={onCreateOrder}
+                className="flex items-center gap-1.5 h-9 px-4 rounded-[10px] text-[13px] font-semibold text-white
+                  transition-all hover:opacity-90 active:scale-[0.97]"
+                style={{ background: '#5E5CE6' }}>
+                {Icons.plus}
+                Tạo order
+              </button>
+            )}
           </div>
         </header>
 
