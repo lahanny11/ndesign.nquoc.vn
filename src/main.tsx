@@ -4,7 +4,8 @@ import './index.css'
 import App from './App.tsx'
 
 async function prepare() {
-  if (import.meta.env.DEV) {
+  // Chạy MSW khi: local dev HOẶC VITE_DEV_BYPASS=true (Vercel demo)
+  if (import.meta.env.DEV || import.meta.env.VITE_DEV_BYPASS === 'true') {
     const { worker } = await import('./mocks/browser')
     return worker.start({ onUnhandledRequest: 'bypass' })
   }
