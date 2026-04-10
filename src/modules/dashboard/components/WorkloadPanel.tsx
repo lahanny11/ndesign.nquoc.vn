@@ -59,7 +59,6 @@ function DesignerCard({ designer }: { designer: DesignerWorkload }) {
   const [expanded, setExpanded] = useState(false)
   const avatarColor = nameToColor(designer.name)
   const total = designer.active_tasks + designer.pending_tasks
-  const capPct = Math.min((total / MAX_CAPACITY) * 100, 100)
   const capColor = total >= MAX_CAPACITY ? '#E11D48' : total >= 5 ? '#FF9F0A' : '#16A34A'
   const reviseAlert = designer.avg_revisions > 2
 
