@@ -9,85 +9,115 @@ interface Props {
 
 function CheckIcon({ ok }: { ok: boolean | null }) {
   if (ok === true) return (
-    <svg className="w-3.5 h-3.5 stroke-[#16A34A] fill-none stroke-[2.5] shrink-0 mt-px" viewBox="0 0 24 24">
-      <polyline points="20 6 9 17 4 12"/>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+      <polyline points="20 6 9 17 4 12" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )
   if (ok === false) return (
-    <svg className="w-3.5 h-3.5 stroke-[#E11D48] fill-none stroke-[2.5] shrink-0 mt-px" viewBox="0 0 24 24">
-      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+      <line x1="18" y1="6" x2="6" y2="18" stroke="#E11D48" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="6" y1="6" x2="18" y2="18" stroke="#E11D48" strokeWidth="2.5" strokeLinecap="round"/>
     </svg>
   )
   return (
-    <svg className="w-3.5 h-3.5 stroke-[#D1D5DB] fill-none stroke-2 shrink-0 mt-px" viewBox="0 0 24 24">
-      <circle cx="12" cy="12" r="9"/>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
+      <circle cx="12" cy="12" r="9" stroke="#D1D5DB" strokeWidth="2"/>
     </svg>
   )
 }
 
+const DOT_STYLES: Record<string, React.CSSProperties> = {
+  done:    { background: '#16A34A', border: '2px solid #16A34A' },
+  active:  { background: '#2563EB', border: '2px solid #2563EB' },
+  flagged: { background: '#E11D48', border: '2px solid #E11D48' },
+  pending: { background: '#F3F4F6', border: '2px solid #E5E7EB' },
+}
+
+const LINE_BG: Record<string, string> = {
+  done:    '#D1FAE5',
+  active:  'linear-gradient(to bottom, #BFDBFE, #E5E7EB)',
+  flagged: '#FECACA',
+  pending: '#F3F4F6',
+}
+
 function Step({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
-  const dotCls = {
-    done:    'bg-[#16A34A] border-[#16A34A]',
-    active:  'bg-[#2563EB] border-[#2563EB]',
-    flagged: 'bg-[#E11D48] border-[#E11D48]',
-    pending: 'bg-[#F3F4F6] border-[#E5E7EB]',
-  }[step.state]
+  const dotStyle = DOT_STYLES[step.state] ?? DOT_STYLES.pending
+  const nameColor = step.state === 'pending' ? '#9CA3AF' : '#1D1D1F'
+  const nameWeight = step.state === 'pending' ? 500 : 600
 
-  const lineCls = {
-    done:    'bg-[#16A34A]',
-    active:  'bg-gradient-to-b from-[#2563EB] to-[#E5E7EB]',
-    flagged: 'bg-[#E11D48]',
-    pending: 'bg-[#E5E7EB]',
-  }[step.state]
-
-  const nameCls = step.state === 'pending' ? 'text-[#9CA3AF] font-medium' : 'text-[#1D1D1F] font-bold'
-
-  const timeCls = step.timeClass === 'late'
-    ? 'text-[#E11D48] font-bold'
-    : step.timeClass === 'early'
-      ? 'text-[#16A34A] font-bold'
-      : 'text-[#9CA3AF]'
+  const timeColor = step.timeClass === 'late'
+    ? '#E11D48' : step.timeClass === 'early'
+      ? '#16A34A' : '#9CA3AF'
+  const timeWeight = step.timeClass === 'late' || step.timeClass === 'early' ? 600 : 400
 
   return (
-    <div className="flex gap-3 relative">
+    <div style={{ display: 'flex', gap: 12, position: 'relative' }}>
       {/* Vertical line */}
       {!isLast && (
-        <div className={`absolute left-[13px] top-[26px] bottom-[-6px] w-px z-0 ${lineCls}`}/>
+        <div style={{
+          position: 'absolute',
+          left: 13, top: 28, bottom: -6,
+          width: 1, zIndex: 0,
+          background: LINE_BG[step.state] ?? LINE_BG.pending,
+        }}/>
       )}
 
       {/* Dot */}
-      <div className="shrink-0 w-[27px] flex justify-center pt-px z-10">
-        <div className={`w-[27px] h-[27px] rounded-full flex items-center justify-center border-2 ${dotCls}`}>
+      <div style={{ flexShrink: 0, width: 27, display: 'flex', justifyContent: 'center', paddingTop: 1, zIndex: 1 }}>
+        <div style={{
+          width: 27, height: 27, borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          ...dotStyle,
+        }}>
           {step.state === 'done' && (
-            <svg className="w-3 h-3 stroke-white fill-none stroke-[2.5]" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+              <polyline points="20 6 9 17 4 12" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           )}
           {step.state === 'active' && (
-            <svg className="w-3 h-3 stroke-white fill-none stroke-[2.5]" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           )}
           {step.state === 'flagged' && (
-            <svg className="w-3 h-3 stroke-white fill-none stroke-[2.5]" viewBox="0 0 24 24"><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+              <line x1="12" y1="9" x2="12" y2="13" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+              <line x1="12" y1="17" x2="12.01" y2="17" stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
+            </svg>
           )}
           {step.state === 'pending' && (
-            <svg className="w-3 h-3 stroke-[#A89EC0] fill-none stroke-2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg>
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="4" stroke="#C7C7CC" strokeWidth="2"/>
+            </svg>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-[18px]">
-        <div className="flex items-center justify-between mb-0.5 gap-1.5">
-          <span className={`text-[12px] ${nameCls}`}>{step.name}</span>
-          {step.time && <span className={`text-[10px] shrink-0 ${timeCls}`}>{step.time}</span>}
+      <div style={{ flex: 1, paddingBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, gap: 8 }}>
+          <span style={{ fontSize: 12, fontWeight: nameWeight, color: nameColor, letterSpacing: '-0.01em' }}>
+            {step.name}
+          </span>
+          {step.time && (
+            <span style={{ fontSize: 10, color: timeColor, fontWeight: timeWeight, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+              {step.time}
+            </span>
+          )}
         </div>
 
         {step.desc && (
-          <p className="text-[11px] text-[#6B7280] leading-relaxed mb-1.5">{step.desc}</p>
+          <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.5, margin: '0 0 8px' }}>{step.desc}</p>
         )}
 
         {step.checks.length > 0 && (
-          <div className="flex flex-col gap-1 mb-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
             {step.checks.map((c, i) => (
-              <div key={i} className={`flex items-start gap-1.5 text-[10px] leading-snug ${c.ok === false ? 'text-[#E11D48]' : 'text-[#6B7280]'}`}>
+              <div key={i} style={{
+                display: 'flex', alignItems: 'flex-start', gap: 6,
+                fontSize: 10, lineHeight: 1.4,
+                color: c.ok === false ? '#E11D48' : '#6B7280',
+              }}>
                 <CheckIcon ok={c.ok}/>
                 <span>{c.text}</span>
               </div>
@@ -96,21 +126,45 @@ function Step({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
         )}
 
         {step.actions && step.actions.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap mt-1">
-            {step.actions.map((action, i) => (
-              <button
-                key={i}
-                className={`px-2.5 py-1 rounded-[7px] border-[1.5px] text-[10px] font-semibold transition-all
-                  ${action.includes('🚨') || action.includes('Báo')
-                    ? 'border-[#E11D48] text-[#E11D48] hover:bg-[#FFF1F2]'
-                    : i === 0
-                      ? 'bg-[#2563EB] text-white border-[#2563EB] hover:opacity-90'
-                      : 'border-[#E5E7EB] text-[#6B7280] hover:border-[#2563EB] hover:text-[#2563EB]'
-                  }`}
-              >
-                {action}
-              </button>
-            ))}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+            {step.actions.map((action, i) => {
+              const isDanger = action.includes('Báo') || action.includes('🚨')
+              const isPrimary = i === 0 && !isDanger
+              return (
+                <button
+                  key={i}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 8,
+                    fontSize: 11,
+                    fontWeight: 600,
+                    border: isDanger
+                      ? '1.5px solid rgba(225,29,72,0.3)'
+                      : isPrimary
+                        ? 'none'
+                        : '1.5px solid rgba(0,0,0,0.12)',
+                    background: isPrimary ? '#1D1D1F' : 'transparent',
+                    color: isDanger ? '#E11D48' : isPrimary ? '#fff' : '#6E6E73',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    letterSpacing: '-0.01em',
+                  }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget
+                    if (isDanger) el.style.background = 'rgba(225,29,72,0.05)'
+                    else if (!isPrimary) el.style.background = 'rgba(0,0,0,0.04)'
+                    else el.style.opacity = '0.8'
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget
+                    el.style.background = isPrimary ? '#1D1D1F' : 'transparent'
+                    el.style.opacity = '1'
+                  }}
+                >
+                  {action}
+                </button>
+              )
+            })}
           </div>
         )}
       </div>
@@ -123,119 +177,245 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
 
   const isLate = order.metrics.ontime.includes('Trễ') || order.metrics.ontime.includes('QUÁ')
   const isEarly = order.metrics.ontime.includes('Sớm')
-  const metricDeadlineBg = isLate
-    ? 'bg-[#FFF1F2] border-[#FECACA]'
-    : isEarly
-      ? 'bg-[#F0FDF4] border-[#BBF7D0]'
-      : 'bg-[#F5F5F7] border-[#F3F4F6]'
+  const deadlineBg = isLate ? 'rgba(225,29,72,0.06)' : isEarly ? 'rgba(22,163,74,0.06)' : 'rgba(0,0,0,0.03)'
+  const deadlineBorder = isLate ? 'rgba(225,29,72,0.18)' : isEarly ? 'rgba(22,163,74,0.18)' : 'rgba(0,0,0,0.07)'
+  const deadlineVal = isLate ? '#E11D48' : isEarly ? '#16A34A' : '#1D1D1F'
 
-  const metricDeadlineVal = isLate
-    ? 'text-[#E11D48]'
-    : isEarly
-      ? 'text-[#16A34A]'
-      : 'text-[#1D1D1F]'
-
-  const roundsBg = order.metrics.rounds > 2
-    ? 'bg-[#FFF1F2] border-[#FECACA]'
-    : 'bg-[#F5F5F7] border-[#F3F4F6]'
-  const roundsVal = order.metrics.rounds > 2 ? 'text-[#E11D48]' : 'text-[#1D1D1F]'
+  const reviseAlert = order.metrics.rounds > 2
+  const reviseBg = reviseAlert ? 'rgba(225,29,72,0.06)' : 'rgba(0,0,0,0.03)'
+  const reviseBorder = reviseAlert ? 'rgba(225,29,72,0.18)' : 'rgba(0,0,0,0.07)'
+  const reviseVal = reviseAlert ? '#E11D48' : '#1D1D1F'
 
   return (
     <>
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/20 z-50 transition-opacity ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0,
+          background: 'rgba(0,0,0,0.22)',
+          backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          zIndex: 50,
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? 'auto' : 'none',
+          transition: 'opacity 0.25s ease',
+        }}
       />
 
       {/* Panel */}
-      <div
-        className={`fixed top-0 right-0 bottom-0 w-[480px] bg-white border-l border-[#E5E7EB] flex flex-col
-          shadow-[-8px_0_40px_rgba(0,0,0,0.12)] z-[51] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-          ${open ? 'translate-x-0' : 'translate-x-full'}`}
-      >
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0,
+        width: 480,
+        background: '#fff',
+        borderLeft: '1px solid rgba(0,0,0,0.07)',
+        display: 'flex', flexDirection: 'column',
+        boxShadow: '-12px 0 48px rgba(0,0,0,0.12)',
+        zIndex: 51,
+        transform: open ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      }}>
+
         {/* Header */}
-        <div className="flex items-start gap-2.5 px-[18px] py-4 border-b border-[#E5E7EB] shrink-0">
-          <div className="flex-1">
-            <h3 className="text-[13px] font-bold text-[#1D1D1F] leading-snug mb-0.5">{order.title}</h3>
-            <p className="text-[11px] text-[#9CA3AF]">
-              {order.type} · {order.team} · Designer: {order.designer ?? 'Chưa assign'}
+        <div style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid rgba(0,0,0,0.07)',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 12,
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{
+              fontSize: 14, fontWeight: 600, color: '#1D1D1F',
+              margin: 0, lineHeight: 1.3, letterSpacing: '-0.02em',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {order.title}
+            </h3>
+            <p style={{ fontSize: 11, color: '#AEAEB2', margin: '4px 0 0' }}>
+              {order.type}
+              <span style={{ margin: '0 5px', color: '#D1D5DB' }}>·</span>
+              {order.team}
+              <span style={{ margin: '0 5px', color: '#D1D5DB' }}>·</span>
+              {order.designer
+                ? <span style={{ color: '#6E6E73' }}>{order.designer}</span>
+                : <span style={{ color: '#AEAEB2', fontStyle: 'italic' }}>Chưa assign</span>
+              }
             </p>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-full border border-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] hover:bg-[#F3F4F6] hover:text-[#1D1D1F] transition-all shrink-0"
+            style={{
+              width: 28, height: 28, borderRadius: '50%',
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: 'rgba(0,0,0,0.03)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', flexShrink: 0, color: '#AEAEB2',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = 'rgba(0,0,0,0.07)'
+              e.currentTarget.style.color = '#1D1D1F'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(0,0,0,0.03)'
+              e.currentTarget.style.color = '#AEAEB2'
+            }}
           >
-            <svg className="w-3 h-3 stroke-current fill-none stroke-2" viewBox="0 0 24 24">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
 
-        {/* Scroll area */}
-        <div className="flex-1 overflow-y-auto px-[18px] py-4 scrollbar-thin scrollbar-thumb-[#E5E7EB]">
+        {/* Scrollable body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
 
           {/* Flag alerts */}
           {order.flag === 'red' && order.redFlags && (
-            <div className="bg-[#FFF1F2] border border-[#FECACA] rounded-[10px] p-3 mb-3.5 flex items-start gap-2 text-[11px] text-[#E11D48] leading-relaxed">
-              <svg className="w-3.5 h-3.5 stroke-current fill-none stroke-2 shrink-0 mt-0.5" viewBox="0 0 24 24">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
+            <div style={{
+              background: 'rgba(225,29,72,0.05)',
+              border: '1px solid rgba(225,29,72,0.16)',
+              borderRadius: 12,
+              padding: '12px 14px',
+              marginBottom: 14,
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: 'rgba(225,29,72,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#E11D48" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="12" y1="9" x2="12" y2="13" stroke="#E11D48" strokeWidth="1.8" strokeLinecap="round"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17" stroke="#E11D48" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
               <div>
-                <b className="block mb-1">Cờ đỏ — Cần can thiệp ngay</b>
-                <ul className="list-disc pl-3 flex flex-col gap-0.5">
-                  {order.redFlags.map((f, i) => <li key={i}>{f}</li>)}
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#E11D48', margin: '0 0 4px' }}>Cờ đỏ — Cần can thiệp ngay</p>
+                <ul style={{ margin: 0, padding: '0 0 0 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {order.redFlags.map((f, i) => (
+                    <li key={i} style={{ fontSize: 11, color: '#6E6E73', lineHeight: 1.4 }}>{f}</li>
+                  ))}
                 </ul>
               </div>
             </div>
           )}
 
           {order.flag === 'warn' && order.redFlags && (
-            <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-[10px] p-3 mb-3.5 flex items-start gap-2 text-[11px] text-[#EA580C] leading-relaxed">
-              <svg className="w-3.5 h-3.5 stroke-current fill-none stroke-2 shrink-0 mt-0.5" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
+            <div style={{
+              background: 'rgba(255,159,10,0.05)',
+              border: '1px solid rgba(255,159,10,0.2)',
+              borderRadius: 12,
+              padding: '12px 14px',
+              marginBottom: 14,
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: 'rgba(255,159,10,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="#FF9F0A" strokeWidth="1.8"/>
+                  <line x1="12" y1="8" x2="12" y2="12" stroke="#FF9F0A" strokeWidth="1.8" strokeLinecap="round"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16" stroke="#FF9F0A" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
               <div>
-                <b className="block mb-1">Cảnh báo</b>
-                <ul className="list-disc pl-3 flex flex-col gap-0.5">
-                  {order.redFlags.map((f, i) => <li key={i}>{f}</li>)}
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#FF9F0A', margin: '0 0 4px' }}>Cảnh báo</p>
+                <ul style={{ margin: 0, padding: '0 0 0 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {order.redFlags.map((f, i) => (
+                    <li key={i} style={{ fontSize: 11, color: '#6E6E73', lineHeight: 1.4 }}>{f}</li>
+                  ))}
                 </ul>
               </div>
             </div>
           )}
 
-          {/* Metrics */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <div className={`rounded-[9px] p-2.5 border text-center ${roundsBg}`}>
-              <div className={`text-[17px] font-bold tracking-tight leading-none ${roundsVal}`}>{order.metrics.rounds}</div>
-              <div className="text-[9px] text-[#9CA3AF] mt-0.5 font-semibold uppercase tracking-wide">Revision</div>
+          {/* Metrics — 3 col grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
+            {/* Revision */}
+            <div style={{
+              padding: '12px 10px', borderRadius: 12, textAlign: 'center',
+              background: reviseBg, border: `1px solid ${reviseBorder}`,
+            }}>
+              <div style={{
+                fontSize: 22, fontWeight: 700, color: reviseVal, lineHeight: 1,
+                letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',
+              }}>
+                {order.metrics.rounds}
+              </div>
+              <div style={{
+                fontSize: 9, fontWeight: 600, color: '#AEAEB2', marginTop: 4,
+                textTransform: 'uppercase', letterSpacing: '0.07em',
+              }}>
+                Revision
+              </div>
             </div>
-            <div className={`rounded-[9px] p-2.5 border text-center ${metricDeadlineBg}`}>
-              <div className={`text-[11px] font-bold leading-tight ${metricDeadlineVal}`}>{order.metrics.ontime}</div>
-              <div className="text-[9px] text-[#9CA3AF] mt-0.5 font-semibold uppercase tracking-wide">Deadline</div>
+
+            {/* Deadline */}
+            <div style={{
+              padding: '12px 10px', borderRadius: 12, textAlign: 'center',
+              background: deadlineBg, border: `1px solid ${deadlineBorder}`,
+            }}>
+              <div style={{
+                fontSize: 13, fontWeight: 700, color: deadlineVal, lineHeight: 1.2,
+                letterSpacing: '-0.02em',
+              }}>
+                {order.metrics.ontime}
+              </div>
+              <div style={{
+                fontSize: 9, fontWeight: 600, color: '#AEAEB2', marginTop: 4,
+                textTransform: 'uppercase', letterSpacing: '0.07em',
+              }}>
+                Deadline
+              </div>
             </div>
-            <div className="rounded-[9px] p-2.5 border border-[#F3F4F6] bg-[#F5F5F7] text-center">
-              <div className="text-[17px] font-bold tracking-tight leading-none text-[#1D1D1F]">{order.metrics.comms}</div>
-              <div className="text-[9px] text-[#9CA3AF] mt-0.5 font-semibold uppercase tracking-wide">Comms</div>
+
+            {/* Comms */}
+            <div style={{
+              padding: '12px 10px', borderRadius: 12, textAlign: 'center',
+              background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)',
+            }}>
+              <div style={{
+                fontSize: 22, fontWeight: 700, color: '#1D1D1F', lineHeight: 1,
+                letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',
+              }}>
+                {order.metrics.comms}
+              </div>
+              <div style={{
+                fontSize: 9, fontWeight: 600, color: '#AEAEB2', marginTop: 4,
+                textTransform: 'uppercase', letterSpacing: '0.07em',
+              }}>
+                Comms
+              </div>
             </div>
           </div>
 
           {/* Timeline label */}
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#9CA3AF] mb-2.5">
-            Timeline
-            <div className="flex-1 h-px bg-[#F3F4F6]"/>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <span style={{
+              fontSize: 10, fontWeight: 600, color: '#AEAEB2',
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+            }}>
+              Timeline
+            </span>
+            <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }}/>
           </div>
 
-          {/* Timeline */}
-          <div className="flex flex-col">
+          {/* Timeline steps */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {order.steps.map((step, i) => (
               <Step key={step.id} step={step} isLast={i === order.steps.length - 1} />
             ))}
           </div>
 
           {/* Divider */}
-          <div className="my-4" style={{ height: 1, background: 'rgba(0,0,0,0.08)' }}/>
+          <div style={{ height: 1, background: 'rgba(0,0,0,0.07)', margin: '16px 0' }}/>
 
           {/* Chat */}
           <OrderChat orderId={order.id} />

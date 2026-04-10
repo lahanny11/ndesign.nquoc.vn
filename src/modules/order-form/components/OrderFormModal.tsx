@@ -138,35 +138,50 @@ export default function OrderFormModal({ open, onClose }: Props) {
 
         {/* Step indicator */}
         {!submitted && (
-          <div className="px-7 flex items-center gap-1 shrink-0"
-            style={{ padding: '12px 28px', borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.015)' }}>
+          <div style={{
+            padding: '10px 28px',
+            borderBottom: '1px solid rgba(0,0,0,0.06)',
+            background: 'rgba(0,0,0,0.012)',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+          }}>
             {STEPS.map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? 1 : 'none' }}>
+                {/* Step pill */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                   <div style={{
-                    width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
+                    width: 20, height: 20, borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '11px', fontWeight: 700,
-                    background: i === step ? '#000' : i < step ? '#34C759' : 'rgba(0,0,0,0.08)',
-                    color: i <= step ? '#fff' : '#AEAEB2',
+                    fontSize: 10, fontWeight: 700, flexShrink: 0,
+                    background: i === step ? '#1D1D1F' : i < step ? '#16A34A' : 'rgba(0,0,0,0.07)',
+                    color: i <= step ? '#fff' : '#C7C7CC',
                     transition: 'all 0.2s ease',
                   }}>
                     {i < step ? (
-                      <svg width="11" height="11" fill="none" viewBox="0 0 24 24">
-                        <polyline points="20 6 9 17 4 12" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+                      <svg width="9" height="9" fill="none" viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     ) : i + 1}
                   </div>
                   <span style={{
-                    fontSize: '13px', fontWeight: i === step ? 600 : 400,
-                    color: i === step ? '#1D1D1F' : i < step ? '#34C759' : '#AEAEB2',
+                    fontSize: 11,
+                    fontWeight: i === step ? 600 : 400,
+                    color: i === step ? '#1D1D1F' : i < step ? '#16A34A' : '#AEAEB2',
+                    letterSpacing: i === step ? '-0.01em' : 0,
                     transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
                   }}>
                     {s.label}
                   </span>
                 </div>
+                {/* Connector */}
                 {i < STEPS.length - 1 && (
-                  <div style={{ width: '20px', height: '1px', background: 'rgba(0,0,0,0.1)', margin: '0 4px' }}/>
+                  <div style={{
+                    flex: 1, height: 1, margin: '0 8px',
+                    background: i < step ? 'rgba(22,163,74,0.3)' : 'rgba(0,0,0,0.08)',
+                    transition: 'background 0.3s ease',
+                  }}/>
                 )}
               </div>
             ))}

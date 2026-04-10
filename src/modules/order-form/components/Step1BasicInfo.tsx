@@ -11,25 +11,25 @@ interface Props {
   orderers: Orderer[]
 }
 
-// ─── Design tokens — dùng nhất quán toàn bộ step ─────────────────────────────
+// ─── Design tokens — Apple HIG ───────────────────────────────────────────────
 const T = {
-  labelSize:   '13px',
+  labelSize:   '11px',
   labelWeight: 600,
-  labelColor:  '#1D1D1F',
-  hintSize:    '12px',
-  hintColor:   '#6E6E73',
-  inputH:      '44px',
-  inputFont:   '14px',
+  labelColor:  '#6E6E73',
+  hintSize:    '11px',
+  hintColor:   '#AEAEB2',
+  inputH:      '42px',
+  inputFont:   '13px',
   inputRadius: '10px',
-  inputPad:    '0 14px',
-  gap:         '20px',
+  inputPad:    '0 13px',
+  gap:         '18px',
 }
 
 const inputBase: React.CSSProperties = {
   width: '100%',
   height: T.inputH,
   background: 'rgba(0,0,0,0.04)',
-  border: '1.5px solid transparent',
+  border: '1px solid transparent',
   borderRadius: T.inputRadius,
   padding: T.inputPad,
   fontSize: T.inputFont,
@@ -42,21 +42,24 @@ const inputBase: React.CSSProperties = {
 }
 const inputFocus: React.CSSProperties = {
   background: '#fff',
-  border: '1.5px solid rgba(94,92,230,0.5)',
-  boxShadow: '0 0 0 3px rgba(94,92,230,0.1)',
+  border: '1px solid rgba(0,0,0,0.25)',
+  boxShadow: '0 0 0 3px rgba(0,0,0,0.05)',
 }
 const inputDone: React.CSSProperties = {
-  background: 'rgba(52,199,89,0.04)',
-  border: '1.5px solid rgba(52,199,89,0.3)',
+  background: 'rgba(22,163,74,0.04)',
+  border: '1px solid rgba(22,163,74,0.25)',
 }
 
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <div style={{ marginBottom: '8px' }}>
-      <span style={{ fontSize: T.labelSize, fontWeight: T.labelWeight, color: T.labelColor }}>
+    <div style={{ marginBottom: 6 }}>
+      <span style={{
+        fontSize: T.labelSize, fontWeight: T.labelWeight, color: T.labelColor,
+        textTransform: 'uppercase', letterSpacing: '0.04em',
+      }}>
         {text}
       </span>
-      {required && <span style={{ color: '#FF3B30', marginLeft: '3px', fontSize: T.labelSize }}>*</span>}
+      {required && <span style={{ color: '#E11D48', marginLeft: '3px', fontSize: T.labelSize }}>*</span>}
     </div>
   )
 }
@@ -198,30 +201,32 @@ export default function Step1BasicInfo({ data, onChange, teams, orderers }: Prop
         onClick={() => onChange({ is_urgent: !data.is_urgent })}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderRadius: '12px', padding: '16px 18px', width: '100%',
+          borderRadius: 12, padding: '14px 16px', width: '100%',
           textAlign: 'left', cursor: 'pointer',
-          background: data.is_urgent ? 'rgba(255,159,10,0.06)' : 'rgba(0,0,0,0.03)',
-          border: `1.5px solid ${data.is_urgent ? 'rgba(255,159,10,0.3)' : 'rgba(0,0,0,0.07)'}`,
+          background: data.is_urgent ? 'rgba(255,159,10,0.05)' : 'rgba(0,0,0,0.03)',
+          border: `1px solid ${data.is_urgent ? 'rgba(255,159,10,0.25)' : 'rgba(0,0,0,0.07)'}`,
           transition: 'all 0.15s ease',
         }}
       >
         <div>
-          <p style={{ fontSize: '14px', fontWeight: 600, color: '#1D1D1F', margin: 0 }}>Yêu cầu gấp</p>
-          <p style={{ fontSize: '13px', color: '#6E6E73', margin: '4px 0 0' }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>Yêu cầu gấp</p>
+          <p style={{ fontSize: 11, color: '#6E6E73', margin: '3px 0 0', lineHeight: 1.4 }}>
             {data.is_urgent ? 'Designer sẽ ưu tiên nhận task này trước' : 'Bật nếu cần hoàn thành sớm hơn thông thường'}
           </p>
         </div>
+        {/* iOS-style toggle */}
         <div style={{
-          position: 'relative', width: '48px', height: '28px',
-          borderRadius: '14px', flexShrink: 0, marginLeft: '16px',
-          background: data.is_urgent ? '#FF9F0A' : 'rgba(0,0,0,0.15)',
+          position: 'relative', width: 44, height: 26,
+          borderRadius: 13, flexShrink: 0, marginLeft: 16,
+          background: data.is_urgent ? '#FF9F0A' : 'rgba(0,0,0,0.13)',
           transition: 'background 0.2s ease',
+          boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)',
         }}>
           <div style={{
-            position: 'absolute', width: '24px', height: '24px',
-            background: '#fff', borderRadius: '12px', top: '2px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-            transform: data.is_urgent ? 'translateX(22px)' : 'translateX(2px)',
+            position: 'absolute', width: 22, height: 22,
+            background: '#fff', borderRadius: 11, top: 2,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.22)',
+            transform: data.is_urgent ? 'translateX(20px)' : 'translateX(2px)',
             transition: 'transform 0.2s ease',
           }} />
         </div>

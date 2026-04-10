@@ -237,49 +237,74 @@ export default function AppLayout({ children, onCreateOrder, activeNav, title }:
     <div className="flex h-screen overflow-hidden" style={{ background: '#F5F5F7' }}>
 
       {/* Sidebar — icon-only, Apple macOS style */}
-      <aside className="w-[68px] bg-white flex flex-col items-center py-4 gap-0 shrink-0"
-        style={{ borderRight: '1px solid rgba(0,0,0,0.07)' }}>
-        {/* Logo */}
-        <div className="w-8 h-8 rounded-[9px] flex items-center justify-center mb-6 shrink-0"
-          style={{ background: '#000' }}>
-          <span className="text-white font-bold"
-            style={{ fontSize: 14, fontFamily: 'Georgia, serif', letterSpacing: '-0.5px' }}>N</span>
+      <aside style={{
+        width: 64, background: '#fff', flexShrink: 0,
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        paddingTop: 16, paddingBottom: 16,
+        borderRight: '1px solid rgba(0,0,0,0.07)',
+      }}>
+        {/* Logo mark */}
+        <div style={{
+          width: 32, height: 32, borderRadius: 9, background: '#1D1D1F',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: 20, flexShrink: 0,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+        }}>
+          <span style={{
+            color: '#fff', fontSize: 14, fontWeight: 700,
+            fontFamily: 'Georgia, serif', letterSpacing: '-0.5px',
+          }}>N</span>
         </div>
 
         {/* Nav icons */}
-        <nav className="flex flex-col gap-0.5 flex-1 w-full px-2">
+        <nav style={{
+          display: 'flex', flexDirection: 'column', gap: 2,
+          flex: 1, width: '100%', padding: '0 8px',
+        }}>
           {navItems.map((item) => {
             const isActive = currentNav === item.key
             return (
-              <div key={item.label} className="relative group">
+              <div key={item.label} style={{ position: 'relative' }}
+                className="group">
                 <button
                   onClick={() => navigate(item.route)}
-                  className="w-full rounded-[9px] flex items-center justify-center transition-all duration-150"
                   style={{
-                    height: 44,
-                    background: isActive ? '#000' : 'transparent',
-                    color: isActive ? '#fff' : '#AEAEB2',
+                    width: '100%', height: 42, borderRadius: 9,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: 'none', cursor: 'pointer',
+                    background: isActive ? '#1D1D1F' : 'transparent',
+                    color: isActive ? '#fff' : '#C7C7CC',
+                    transition: 'all 0.15s',
                   }}
                   onMouseEnter={e => {
                     if (!isActive) {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.05)'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = '#3A3A3C'
+                      e.currentTarget.style.background = 'rgba(0,0,0,0.05)'
+                      e.currentTarget.style.color = '#3A3A3C'
                     }
                   }}
                   onMouseLeave={e => {
                     if (!isActive) {
-                      (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
-                      ;(e.currentTarget as HTMLButtonElement).style.color = '#AEAEB2'
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = '#C7C7CC'
                     }
                   }}
                 >
                   {item.icon}
                 </button>
+                {/* Active indicator dot */}
+                {isActive && (
+                  <div style={{
+                    position: 'absolute', left: 0, top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 3, height: 16, borderRadius: '0 3px 3px 0',
+                    background: '#1D1D1F',
+                  }}/>
+                )}
                 {/* Tooltip */}
                 <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[#1D1D1F] text-white
                   text-[11px] font-semibold rounded-[8px] whitespace-nowrap opacity-0 group-hover:opacity-100
                   pointer-events-none transition-opacity z-50"
-                  style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                  style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.18)' }}>
                   {item.label}
                   <div className="absolute right-full top-1/2 -translate-y-1/2 border-[4px] border-transparent border-r-[#1D1D1F]"/>
                 </div>
@@ -288,16 +313,26 @@ export default function AppLayout({ children, onCreateOrder, activeNav, title }:
           })}
         </nav>
 
+        {/* Divider */}
+        <div style={{ width: 32, height: 1, background: 'rgba(0,0,0,0.07)', margin: '8px 0' }}/>
+
         {/* User avatar */}
-        <div className="relative group mt-auto mb-1">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold cursor-pointer"
-            style={{ fontSize: 12, background: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)' }}>
-            {user?.display_name?.[0] ?? 'U'}
+        <div style={{ position: 'relative' }} className="group">
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', flexShrink: 0,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
+          }}>
+            <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>
+              {user?.display_name?.[0] ?? 'U'}
+            </span>
           </div>
           <div className="absolute left-full ml-2.5 bottom-0 px-2.5 py-1.5 bg-[#1D1D1F] text-white
             text-[11px] font-semibold rounded-[8px] whitespace-nowrap opacity-0 group-hover:opacity-100
             pointer-events-none transition-opacity z-50"
-            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.18)' }}>
             {user?.display_name ?? 'Demo User'}
           </div>
         </div>

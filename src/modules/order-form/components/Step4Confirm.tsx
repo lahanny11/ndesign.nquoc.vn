@@ -8,17 +8,21 @@ interface Props {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{
-      border: '1px solid rgba(0,0,0,0.08)',
-      borderRadius: '12px',
+      border: '1px solid rgba(0,0,0,0.07)',
+      borderRadius: 14,
       overflow: 'hidden',
       background: '#fff',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
     }}>
       <div style={{
-        padding: '10px 16px',
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
-        background: 'rgba(0,0,0,0.02)',
+        padding: '9px 16px',
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
+        background: 'rgba(0,0,0,0.015)',
       }}>
-        <span style={{ fontSize: '11px', fontWeight: 600, color: '#6E6E73', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+        <span style={{
+          fontSize: 10, fontWeight: 600, color: '#AEAEB2',
+          letterSpacing: '0.07em', textTransform: 'uppercase',
+        }}>
           {title}
         </span>
       </div>
@@ -30,16 +34,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{
-      display: 'flex', gap: '16px',
+      display: 'flex', gap: 16,
       padding: '10px 16px',
       borderBottom: '1px solid rgba(0,0,0,0.04)',
-    }}
-      className="last:border-b-0"
-    >
-      <span style={{ fontSize: '12px', color: '#AEAEB2', minWidth: '100px', flexShrink: 0, fontWeight: 500, paddingTop: '1px' }}>
+    }}>
+      <span style={{
+        fontSize: 11, color: '#AEAEB2', minWidth: 95, flexShrink: 0,
+        fontWeight: 500, paddingTop: 1,
+      }}>
         {label}
       </span>
-      <span style={{ fontSize: '13px', color: '#1D1D1F', fontWeight: 500, flex: 1 }}>{value}</span>
+      <span style={{ fontSize: 13, color: '#1D1D1F', fontWeight: 500, flex: 1, lineHeight: 1.4 }}>{value}</span>
     </div>
   )
 }

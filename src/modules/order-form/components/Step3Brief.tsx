@@ -100,9 +100,9 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
     width: '100%',
     background: 'rgba(0,0,0,0.04)',
     border: '1px solid transparent',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    fontSize: '14px',
+    borderRadius: 10,
+    padding: '10px 13px',
+    fontSize: 13,
     color: '#1D1D1F',
     fontFamily: 'inherit',
     outline: 'none',
@@ -110,12 +110,12 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
   }
   const inputFocus: React.CSSProperties = {
     background: '#fff',
-    border: '1px solid rgba(94,92,230,0.5)',
-    boxShadow: '0 0 0 3px rgba(0,0,0,0.07)',
+    border: '1px solid rgba(0,0,0,0.25)',
+    boxShadow: '0 0 0 3px rgba(0,0,0,0.05)',
   }
   const inputDone: React.CSSProperties = {
-    background: 'rgba(52,199,89,0.05)',
-    border: '1px solid rgba(52,199,89,0.2)',
+    background: 'rgba(22,163,74,0.04)',
+    border: '1px solid rgba(22,163,74,0.22)',
   }
 
   return (
@@ -123,14 +123,17 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
 
       {/* Brief textarea */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <label style={{ fontSize: '12px', fontWeight: 600, color: '#6E6E73', letterSpacing: '0.01em' }}>
-            Brief chi tiết <span style={{ color: '#FF3B30' }}>*</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <label style={{
+            fontSize: 11, fontWeight: 600, color: '#6E6E73',
+            textTransform: 'uppercase', letterSpacing: '0.04em',
+          }}>
+            Brief chi tiết <span style={{ color: '#E11D48' }}>*</span>
           </label>
           <span style={{
-            fontSize: '11px',
-            fontWeight: 500,
-            color: briefOk ? '#34C759' : '#AEAEB2',
+            fontSize: 10, fontWeight: 500,
+            color: briefOk ? '#16A34A' : '#AEAEB2',
+            fontVariantNumeric: 'tabular-nums',
             transition: 'color 0.2s',
           }}>
             {briefCount}/2000
@@ -172,10 +175,15 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
 
       {/* Style reference */}
       <div>
-        <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#6E6E73', marginBottom: '6px' }}>
-          Phong cách tham khảo
-          <span style={{ fontSize: '11px', fontWeight: 400, color: '#AEAEB2', marginLeft: '6px' }}>tuỳ chọn</span>
-        </label>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <label style={{
+            fontSize: 11, fontWeight: 600, color: '#6E6E73',
+            textTransform: 'uppercase', letterSpacing: '0.04em',
+          }}>
+            Phong cách tham khảo
+          </label>
+          <span style={{ fontSize: 10, color: '#AEAEB2' }}>tuỳ chọn</span>
+        </div>
         <input
           type="text"
           value={data.style_reference}
@@ -190,9 +198,12 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
 
       {/* Tabs */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-          <span style={{ fontSize: '12px', fontWeight: 600, color: '#6E6E73' }}>Tham khảo thêm</span>
-          <span style={{ fontSize: '11px', color: '#AEAEB2' }}>tuỳ chọn</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: '#6E6E73',
+            textTransform: 'uppercase', letterSpacing: '0.04em',
+          }}>Tham khảo thêm</span>
+          <span style={{ fontSize: 10, color: '#AEAEB2' }}>tuỳ chọn</span>
         </div>
 
         {/* Segmented control */}
