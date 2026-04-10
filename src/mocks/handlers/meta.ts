@@ -116,17 +116,31 @@ export const metaHandlers = [
     return HttpResponse.json(designers)
   }),
 
-  // Current user (mặc định là Nhi Le - design_leader có thể thấy tất cả)
-  http.get(`${BASE}/api/v1/me`, () => {
-    return HttpResponse.json({
-      id: 'u-ad-1',
-      email: 'nhile@nhile.vn',
-      display_name: 'Nhi Le',
-      avatar_url: null,
-      role: 'design_leader',
-      team: { id: 'team-admin', name: 'Admin', slug: 'admin' },
-      is_active: true,
-    })
+  // Current user — role-aware via ?role= query param
+  http.get(`${BASE}/api/v1/me`, ({ request }) => {
+    const url = new URL(request.url)
+    const role = url.searchParams.get('role') ?? 'design_leader'
+
+    const users = {
+      design_leader: {
+        id: 'u-ad-1', email: 'nhile@nhile.vn', display_name: 'Nhi Le',
+        avatar_url: null, role: 'design_leader',
+        team: { id: 'team-admin', name: 'Admin', slug: 'admin' }, is_active: true,
+      },
+      designer: {
+        id: 'u-de-1', email: 'leva@nhile.vn', display_name: 'Lê Văn A',
+        avatar_url: null, role: 'designer',
+        team: { id: 'team-design', name: 'Design', slug: 'design' }, is_active: true,
+      },
+      orderer: {
+        id: 'u-sc-1', email: 'haiyen@nhile.vn', display_name: 'Hải Yến',
+        avatar_url: null, role: 'orderer',
+        team: { id: 'team-social', name: 'Social Content', slug: 'social-content' }, is_active: true,
+      },
+    }
+
+    const key = (role as keyof typeof users) in users ? (role as keyof typeof users) : 'design_leader'
+    return HttpResponse.json(users[key])
   }),
 
   http.get(`${BASE}/health`, () => {

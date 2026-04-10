@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useCurrentUser } from '../hooks/useCurrentUser'
+import { useRoleStore, type AppRole } from '../stores/role.store'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -59,6 +60,29 @@ const Icons = {
       <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   ),
+  chevronDown: (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: 12, height: 12 }}>
+      <polyline points="6 9 12 15 18 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  // Role icons
+  star: (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: 14, height: 14 }}>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  pen: (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: 14, height: 14 }}>
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
+  user: (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: 14, height: 14 }}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ),
 }
 
 interface NavItem {
@@ -76,10 +100,136 @@ const navItems: NavItem[] = [
   { label: 'Feedback',   key: 'feedback',  icon: Icons.feedback,  route: '/feedback' },
 ]
 
-export default function AppLayout({ children, onCreateOrder, activeNav = 'orders', title }: AppLayoutProps) {
+interface RoleOption {
+  value: AppRole
+  label: string
+  icon: React.ReactNode
+}
+
+const ROLE_OPTIONS: RoleOption[] = [
+  { value: 'design_leader', label: 'Design Leader', icon: Icons.star },
+  { value: 'designer',      label: 'Designer',      icon: Icons.pen },
+  { value: 'orderer',       label: 'Người order',   icon: Icons.user },
+]
+
+function RoleSwitcher() {
+  const { role, setRole } = useRoleStore()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const current = ROLE_OPTIONS.find(r => r.value === role) ?? ROLE_OPTIONS[0]
+
+  function handleSelect(r: AppRole) {
+    setRole(r)
+    setOpen(false)
+    // Navigate to same path with new role param
+    const url = new URL(window.location.href)
+    url.searchParams.set('role', r)
+    navigate(location.pathname + '?' + url.searchParams.toString(), { replace: true })
+  }
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'rgba(0,0,0,0.05)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          borderRadius: 20,
+          padding: '4px 12px 4px 8px',
+          fontSize: 12,
+          fontWeight: 600,
+          color: '#1D1D1F',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <span style={{ color: '#5E5CE6', display: 'flex', alignItems: 'center' }}>{current.icon}</span>
+        {current.label}
+        <span style={{ color: '#AEAEB2', display: 'flex', alignItems: 'center' }}>{Icons.chevronDown}</span>
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute',
+          top: 'calc(100% + 8px)',
+          right: 0,
+          background: 'white',
+          borderRadius: 12,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          minWidth: 160,
+          padding: 6,
+          zIndex: 100,
+        }}>
+          {ROLE_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => handleSelect(opt.value)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 8,
+                fontSize: 13,
+                cursor: 'pointer',
+                border: 'none',
+                textAlign: 'left',
+                background: role === opt.value ? 'rgba(94,92,230,0.08)' : 'transparent',
+                color: role === opt.value ? '#5E5CE6' : '#1D1D1F',
+                fontWeight: role === opt.value ? 600 : 400,
+              }}
+              onMouseEnter={e => {
+                if (role !== opt.value) {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,0,0,0.04)'
+                }
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.background = role === opt.value ? 'rgba(94,92,230,0.08)' : 'transparent'
+              }}
+            >
+              <span style={{ color: role === opt.value ? '#5E5CE6' : '#6E6E73', display: 'flex', alignItems: 'center' }}>{opt.icon}</span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function AppLayout({ children, onCreateOrder, activeNav, title }: AppLayoutProps) {
   const { data: user } = useCurrentUser()
   const [notifOpen, setNotifOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Detect active nav from pathname if not provided
+  const currentNav = activeNav ?? (() => {
+    const path = location.pathname
+    if (path.startsWith('/analytics')) return 'analytics'
+    if (path.startsWith('/tools')) return 'tools'
+    if (path.startsWith('/moodboard')) return 'moodboard'
+    if (path.startsWith('/feedback')) return 'feedback'
+    return 'orders'
+  })()
 
   const pageTitle = title ?? 'Quản lý Order'
 
@@ -98,7 +248,7 @@ export default function AppLayout({ children, onCreateOrder, activeNav = 'orders
         {/* Nav icons */}
         <nav className="flex flex-col gap-1 flex-1 w-full px-2">
           {navItems.map((item) => {
-            const isActive = activeNav === item.key
+            const isActive = currentNav === item.key
             return (
               <div key={item.label} className="relative group">
                 <button
@@ -180,6 +330,9 @@ export default function AppLayout({ children, onCreateOrder, activeNav = 'orders
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
+            {/* Role Switcher */}
+            <RoleSwitcher />
+
             {/* Bell */}
             <button onClick={() => setNotifOpen(!notifOpen)}
               className="relative w-9 h-9 rounded-[10px] flex items-center justify-center text-[#6E6E73]

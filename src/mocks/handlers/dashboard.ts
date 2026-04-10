@@ -42,8 +42,17 @@ export const dashboardHandlers = [
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const hasFlag = url.searchParams.get('has_flag')
+    const role = url.searchParams.get('role') ?? 'design_leader'
 
     let orders = [...mockOrders]
+
+    // Role-based filtering
+    if (role === 'designer') {
+      orders = orders.filter(o => o.designer_name === 'Lê Văn A')
+    } else if (role === 'orderer') {
+      orders = orders.filter(o => o.team_name === 'Social Content' || o.team_id === 'team-social')
+    }
+    // design_leader: sees all — no filter
 
     if (status) {
       const statuses = status.split(',')

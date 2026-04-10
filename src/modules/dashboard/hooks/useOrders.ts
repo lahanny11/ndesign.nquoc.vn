@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '../../../shared/config/api-client'
+import { useRoleStore } from '../../../shared/stores/role.store'
 import type { FilterTab, OrderCard } from '../types/dashboard.types'
 
 interface OrdersResponse {
@@ -8,16 +9,23 @@ interface OrdersResponse {
 }
 
 function tabToParams(tab: FilterTab): string {
-  if (tab === 'pending') return '?status=pending'
-  if (tab === 'active')  return '?status=in_progress,assigned'
-  if (tab === 'done')    return '?status=done'
-  if (tab === 'flag')    return '?has_flag=true'
+  if (tab === 'pending') return 'status=pending'
+  if (tab === 'active')  return 'status=in_progress,assigned'
+  if (tab === 'done')    return 'status=done'
+  if (tab === 'flag')    return 'has_flag=true'
   return ''
 }
 
 export function useOrders(tab: FilterTab) {
+  const role = useRoleStore(s => s.role)
+
   return useQuery<OrdersResponse>({
-    queryKey: ['orders', tab],
-    queryFn: () => apiClient.get<OrdersResponse>(`/api/v1/orders${tabToParams(tab)}`),
+    queryKey: ['orders', tab, role],
+    queryFn: () => {
+      const tabParams = tabToParams(tab)
+      const roleParam = `role=${role}`
+      const query = tabParams ? `?${tabParams}&${roleParam}` : `?${roleParam}`
+      return apiClient.get<OrdersResponse>(`/api/v1/orders${query}`)
+    },
   })
 }

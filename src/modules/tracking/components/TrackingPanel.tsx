@@ -1,4 +1,5 @@
 import type { OrderDetail, TimelineStep } from '../types/tracking.types'
+import OrderChat from './OrderChat'
 
 interface Props {
   order: OrderDetail | null
@@ -232,6 +233,12 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
               <Step key={step.id} step={step} isLast={i === order.steps.length - 1} />
             ))}
           </div>
+
+          {/* Divider */}
+          <div className="my-4" style={{ height: 1, background: 'rgba(0,0,0,0.08)' }}/>
+
+          {/* Chat */}
+          <OrderChat orderId={order.id} />
         </div>
       </div>
     </>
