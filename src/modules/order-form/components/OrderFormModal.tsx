@@ -246,33 +246,127 @@ export default function OrderFormModal({ open, onClose }: Props) {
         {/* Body */}
         <div className="overflow-y-auto flex-1">
           {submitted ? (
-            <div className="flex flex-col items-center px-6 py-12 text-center">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
-                style={{ background: 'rgba(52,199,89,0.1)' }}>
-                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24">
-                  <polyline points="20 6 9 17 4 12" stroke="#34C759" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {/* Hero section */}
+              <div style={{
+                background: 'linear-gradient(160deg, #f0fdf4 0%, #fff 60%)',
+                padding: '36px 32px 28px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+                borderBottom: '1px solid rgba(0,0,0,0.06)',
+              }}>
+                {/* Animated checkmark */}
+                <div style={{
+                  width: 64, height: 64, borderRadius: '50%',
+                  background: 'rgba(22,163,74,0.1)',
+                  border: '2px solid rgba(22,163,74,0.2)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 16,
+                  boxShadow: '0 0 0 8px rgba(22,163,74,0.05)',
+                }}>
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12" stroke="#16A34A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p style={{ fontSize: 22, fontWeight: 700, color: '#1D1D1F', letterSpacing: '-0.03em', margin: 0 }}>
+                  Order đã được gửi!
+                </p>
+                <p style={{ fontSize: 13, color: '#6E6E73', marginTop: 6, lineHeight: 1.6, maxWidth: 280 }}>
+                  Design team đã nhận được yêu cầu và sẽ xác nhận trong vòng 2–4 giờ.
+                </p>
+                {/* Order number badge */}
+                <div style={{
+                  marginTop: 16, padding: '10px 20px', borderRadius: 12,
+                  background: '#fff', border: '1.5px solid rgba(22,163,74,0.25)',
+                  boxShadow: '0 2px 8px rgba(22,163,74,0.08)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                }}>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: '#AEAEB2', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Mã order</span>
+                  <span style={{ fontSize: 17, fontWeight: 700, color: '#1D1D1F', fontFamily: 'ui-monospace, monospace', letterSpacing: '0.05em' }}>
+                    {orderNumber}
+                  </span>
+                </div>
               </div>
-              <p className="text-[20px] font-bold text-[#1D1D1F] tracking-tight">Order đã được gửi</p>
-              <p className="text-[13px] text-[#6E6E73] mt-2 max-w-[260px] leading-relaxed">
-                Design team đã nhận được yêu cầu và sẽ xác nhận trong vòng 2–4 giờ.
-              </p>
-              <div className="mt-5 px-5 py-3 rounded-xl"
-                style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.06)' }}>
-                <p className="text-[10px] text-[#AEAEB2] mb-1">Mã order</p>
-                <p className="text-[15px] font-bold text-[#1D1D1F] font-mono tracking-widest">{orderNumber}</p>
+
+              {/* Order summary */}
+              <div style={{ padding: '20px 28px' }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: '#AEAEB2', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 12 }}>
+                  Thông tin đã gửi
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.07)' }}>
+                  {[
+                    { label: 'Tên task', value: form.step1.task_name },
+                    { label: 'Team', value: teamName },
+                    { label: 'Loại sản phẩm', value: form.step2.product_type_name },
+                    { label: 'Kích thước', value: form.step2.product_size_name },
+                    { label: 'Deadline', value: form.step1.deadline ? new Date(form.step1.deadline).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '' },
+                  ].filter(r => r.value).map((row, i, arr) => (
+                    <div key={row.label} style={{
+                      display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
+                      padding: '10px 14px',
+                      background: i % 2 === 0 ? '#FAFAFA' : '#fff',
+                      borderBottom: i < arr.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
+                    }}>
+                      <span style={{ fontSize: 12, color: '#AEAEB2', flexShrink: 0 }}>{row.label}</span>
+                      <span style={{ fontSize: 12, fontWeight: 500, color: '#1D1D1F', textAlign: 'right' }}>{row.value}</span>
+                    </div>
+                  ))}
+                  {form.step1.is_urgent && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px',
+                      background: 'rgba(255,159,10,0.05)', borderTop: '1px solid rgba(255,159,10,0.15)',
+                    }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: 'rgba(255,159,10,0.15)', color: '#D97706' }}>
+                        Task gấp
+                      </span>
+                      <span style={{ fontSize: 11, color: '#92400E' }}>Ưu tiên xử lý sớm</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Next steps */}
+                <div style={{
+                  marginTop: 14, padding: '12px 14px', borderRadius: 12,
+                  background: 'rgba(0,0,0,0.02)', border: '1px solid rgba(0,0,0,0.06)',
+                }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, color: '#6E6E73', marginBottom: 8 }}>Bước tiếp theo</p>
+                  {[
+                    'Design Leader sẽ assign designer phù hợp',
+                    'Designer sẽ liên hệ nếu cần làm rõ brief',
+                    'Theo dõi tiến độ trên dashboard',
+                  ].map((s, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: i < 2 ? 6 : 0 }}>
+                      <div style={{
+                        width: 18, height: 18, borderRadius: '50%', background: '#1D1D1F',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
+                      }}>
+                        <span style={{ fontSize: 9, fontWeight: 700, color: '#fff' }}>{i + 1}</span>
+                      </div>
+                      <span style={{ fontSize: 12, color: '#6E6E73', lineHeight: 1.5 }}>{s}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2 mt-6">
+
+              {/* Action buttons */}
+              <div style={{ padding: '0 28px 24px', display: 'flex', gap: 10 }}>
                 <button onClick={handleClose}
-                  className="px-4 py-2 rounded-[10px] text-[13px] font-medium text-[#6E6E73] transition-colors"
-                  style={{ background: 'rgba(0,0,0,0.06)' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.1)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.06)')}>
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+                    fontSize: 13, fontWeight: 500, color: '#1D1D1F',
+                    background: 'rgba(0,0,0,0.07)', transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.12)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(0,0,0,0.07)')}>
                   Về dashboard
                 </button>
                 <button onClick={() => { setStep(0); setSubmitted(false); setForm({ ...EMPTY, draft_order_id: crypto.randomUUID() }) }}
-                  className="px-4 py-2 rounded-[10px] text-[13px] font-semibold text-white transition-all hover:opacity-90"
-                  style={{ background: '#000' }}>
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+                    fontSize: 13, fontWeight: 600, color: '#fff', background: '#000',
+                    transition: 'opacity 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
                   Tạo order mới
                 </button>
               </div>
