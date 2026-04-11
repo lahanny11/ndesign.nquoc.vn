@@ -151,7 +151,7 @@ export default function AnalyticsPage() {
             Analytics & Reports
           </h1>
           <p style={{ fontSize: 13, color: '#6E6E73', margin: '4px 0 0' }}>
-            Tracking KPI Design Team — Co-Leader Dashboard
+            Tracking KPI Design Team — chỉ Design Leader
           </p>
         </div>
 

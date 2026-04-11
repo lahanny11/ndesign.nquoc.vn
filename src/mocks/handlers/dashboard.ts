@@ -115,6 +115,12 @@ export const dashboardHandlers = [
     const warnFlag = mockOrders.filter(o => o.has_warn_flag && !o.has_red_flag).length
     const pending = mockOrders.filter(o => o.status === 'pending').length
 
+    // Tính avg_revision_rounds thật từ dữ liệu — không tự chế công thức
+    const ordersWithRevision = mockOrders.filter(o => o.revision_rounds > 0)
+    const avgRevision = ordersWithRevision.length > 0
+      ? ordersWithRevision.reduce((sum, o) => sum + o.revision_rounds, 0) / ordersWithRevision.length
+      : 0
+
     return HttpResponse.json({
       total_orders: total,
       in_progress_count: inProgress,
@@ -123,6 +129,48 @@ export const dashboardHandlers = [
       active_red_flag_orders: redFlag,
       active_warn_flag_orders: warnFlag,
       pending_assignment: pending,
+      avg_revision_rounds: Math.round(avgRevision * 10) / 10,
     })
+  }),
+
+  // ─── GET /dashboard/workload — per-designer stats từ shared store ─────────────
+  http.get(`${BASE}/api/v1/dashboard/workload`, () => {
+    const DESIGNERS = ['Lê Văn A', 'Trần Thị B', 'Nguyễn C']
+    const DESIGNER_IDS: Record<string, string> = {
+      'Lê Văn A': 'u-de-1',
+      'Trần Thị B': 'u-de-2',
+      'Nguyễn C': 'u-de-3',
+    }
+
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+
+    const workload = DESIGNERS.map(name => {
+      const myOrders = mockOrders.filter(o => o.designer_name === name)
+      const active = myOrders.filter(o =>
+        ['assigned', 'in_progress', 'feedback', 'delivered'].includes(o.status)
+      ).length
+      const pending = myOrders.filter(o => o.status === 'pending').length
+      const doneThisWeek = myOrders.filter(o =>
+        o.status === 'done' && o.done_at && new Date(o.done_at) >= oneWeekAgo
+      ).length
+      const ordersWithRevision = myOrders.filter(o => o.revision_rounds > 0)
+      const avgRev = ordersWithRevision.length > 0
+        ? ordersWithRevision.reduce((sum, o) => sum + o.revision_rounds, 0) / ordersWithRevision.length
+        : 0
+      const hasBlocked = myOrders.some(o => o.has_red_flag)
+
+      return {
+        id: DESIGNER_IDS[name],
+        name,
+        active_tasks: active,
+        pending_tasks: pending,
+        done_this_week: doneThisWeek,
+        avg_revisions: Math.round(avgRev * 10) / 10,
+        has_blocked: hasBlocked,
+      }
+    })
+
+    return HttpResponse.json(workload)
   }),
 ]

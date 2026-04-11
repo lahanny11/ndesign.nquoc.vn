@@ -61,11 +61,22 @@ export default function Group2Quality({ data }: Group2QualityProps) {
         padding: 20,
         boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
       }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#1D1D1F', marginBottom: 4 }}>
-          Vòng revise theo Designer
-        </div>
-        <div style={{ fontSize: 11, color: '#AEAEB2', marginBottom: 16 }}>
-          Bar đỏ = vượt ngưỡng 2.0 vòng
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#1D1D1F', marginBottom: 3 }}>
+              Vòng revise theo Designer
+            </div>
+            <div style={{ fontSize: 11, color: '#AEAEB2' }}>
+              Bar đỏ = vượt ngưỡng 2.0 vòng
+            </div>
+          </div>
+          {/* P6 safeguard: data này dùng để Design Leader ra quyết định assign/coaching — không share cho team */}
+          <span style={{
+            fontSize: 10, fontWeight: 500, padding: '3px 9px', borderRadius: 99, flexShrink: 0,
+            background: 'rgba(0,0,0,0.05)', color: '#6E6E73', letterSpacing: '0.02em',
+          }}>
+            Chỉ Design Leader
+          </span>
         </div>
 
         <BarChart

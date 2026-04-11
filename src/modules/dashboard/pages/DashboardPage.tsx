@@ -18,11 +18,15 @@ import type { FilterTab } from '../types/dashboard.types'
 // Orderer-specific simple stat cards
 interface SimpleStatCardProps {
   label: string
-  value: number
+  value: number | string
   color?: string
+  sub?: string
+  badge?: string
+  badgeColor?: string
+  badgeBg?: string
 }
 
-function SimpleStatCard({ label, value, color }: SimpleStatCardProps) {
+function SimpleStatCard({ label, value, color, sub, badge, badgeColor, badgeBg }: SimpleStatCardProps) {
   return (
     <div style={{
       background: '#fff', borderRadius: 16, padding: '18px 20px 16px',
@@ -33,6 +37,19 @@ function SimpleStatCard({ label, value, color }: SimpleStatCardProps) {
       <p style={{ fontSize: 28, fontWeight: 700, color: color ?? '#1D1D1F', margin: 0, lineHeight: 1, letterSpacing: '-0.025em', fontVariantNumeric: 'tabular-nums' }}>
         {value}
       </p>
+      {(sub || badge) && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 8 }}>
+          {sub && <p style={{ fontSize: 12, color: '#AEAEB2', margin: 0, lineHeight: 1.3, flex: 1, minWidth: 0 }}>{sub}</p>}
+          {badge && (
+            <span style={{
+              fontSize: 10, fontWeight: 600, padding: '3px 7px', borderRadius: 99,
+              flexShrink: 0, color: badgeColor, background: badgeBg,
+            }}>
+              {badge}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -170,6 +187,7 @@ export default function DashboardPage() {
                   total_orders: 0, in_progress_count: 0, done_count: 0,
                   urgent_count: 0, active_red_flag_orders: 0,
                   active_warn_flag_orders: 0, pending_assignment: 0,
+                  avg_revision_rounds: 0,
                 }}
                 loading={statsLoading}
               />
@@ -211,11 +229,31 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* 2 simple stat cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <SimpleStatCard label="Order đang chạy" value={activeOrderCount} color="#2563EB" />
-                <SimpleStatCard label="Hoàn thành" value={orders.filter(o => o.status === 'done').length} color="#16A34A" />
-              </div>
+              {/* 3 stat cards — bao gồm revision feedback */}
+              {(() => {
+                const myOrders = orders
+                const doneCount = myOrders.filter(o => o.status === 'done').length
+                const myRevOrders = myOrders.filter(o => o.revision_rounds > 0)
+                const myAvgRev = myRevOrders.length > 0
+                  ? myRevOrders.reduce((s, o) => s + o.revision_rounds, 0) / myRevOrders.length
+                  : 0
+                const revOk = myAvgRev <= 1.5
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                    <SimpleStatCard label="Order đang chạy" value={activeOrderCount} color="#2563EB" sub={`Tổng ${myOrders.length} order`} />
+                    <SimpleStatCard label="Hoàn thành" value={doneCount} color="#16A34A" sub="Bàn giao thành công" />
+                    <SimpleStatCard
+                      label="Brief quality"
+                      value={myOrders.length > 0 ? `${myAvgRev.toFixed(1)}×` : '—'}
+                      color={myAvgRev > 2 ? '#E11D48' : myAvgRev > 1.5 ? '#FF9F0A' : '#16A34A'}
+                      sub="Revise TB từ brief của bạn"
+                      badge={myOrders.length > 0 ? (revOk ? 'Brief tốt' : 'Cải thiện brief') : undefined}
+                      badgeColor={revOk ? '#16A34A' : '#FF9F0A'}
+                      badgeBg={revOk ? 'rgba(22,163,74,0.09)' : 'rgba(255,159,10,0.09)'}
+                    />
+                  </div>
+                )
+              })()}
 
               <SimplifiedTabs
                 tabs={ORDERER_TABS}
@@ -254,6 +292,53 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Revision quality card — self-feedback loop cho designer (P5) */}
+              {(() => {
+                const myAvg = parseFloat(designerStats.avgRevision)
+                const revWarn = myAvg > 1.5 && myAvg <= 2
+                const revBad = myAvg > 2
+                const badge = orders.length === 0 ? undefined
+                  : revBad  ? 'Cần cải thiện'
+                  : revWarn ? 'Chú ý'
+                  : 'Tốt'
+                const badgeColor = revBad ? '#E11D48' : revWarn ? '#FF9F0A' : '#16A34A'
+                const badgeBg = revBad ? 'rgba(225,29,72,0.09)' : revWarn ? 'rgba(255,159,10,0.09)' : 'rgba(22,163,74,0.09)'
+                return (
+                  <div style={{
+                    background: '#fff', borderRadius: 14, padding: '14px 18px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
+                    display: 'flex', alignItems: 'center', gap: 16,
+                  }}>
+                    <div style={{
+                      width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                      background: revBad ? 'rgba(225,29,72,0.07)' : revWarn ? 'rgba(255,159,10,0.07)' : 'rgba(22,163,74,0.07)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <span style={{ fontSize: 20 }}>{revBad ? '⚠️' : revWarn ? '🔍' : '✓'}</span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1D1D1F', margin: 0 }}>
+                        Chất lượng công việc của bạn
+                      </p>
+                      <p style={{ fontSize: 12, color: '#6E6E73', margin: '3px 0 0' }}>
+                        Avg. revision:{' '}
+                        <strong style={{ color: revBad ? '#E11D48' : revWarn ? '#FF9F0A' : '#16A34A', fontVariantNumeric: 'tabular-nums' }}>
+                          {orders.length > 0 ? `${designerStats.avgRevision}×` : '—'}
+                        </strong>
+                        {' · '}Mục tiêu ≤ 1.5 vòng
+                      </p>
+                    </div>
+                    {badge && (
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 99,
+                        flexShrink: 0, color: badgeColor, background: badgeBg,
+                      }}>
+                        {badge}
+                      </span>
+                    )}
+                  </div>
+                )
+              })()}
               <DesignerStatCards stats={designerStats} />
 
               <SimplifiedTabs

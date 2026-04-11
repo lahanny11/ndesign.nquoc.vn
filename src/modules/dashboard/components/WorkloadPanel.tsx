@@ -1,45 +1,6 @@
 import { useState } from 'react'
-
-interface DesignerTask {
-  id: string
-  task_name: string
-  status: string
-  has_red_flag: boolean
-  deadline: string
-}
-
-interface DesignerWorkload {
-  id: string
-  name: string
-  active_tasks: number
-  pending_tasks: number
-  done_this_week: number
-  avg_revisions: number
-  has_blocked: boolean
-  tasks: DesignerTask[]
-}
-
-const DESIGNER_WORKLOAD: DesignerWorkload[] = [
-  {
-    id: 'u-de-1', name: 'Lê Văn A', active_tasks: 4, pending_tasks: 1,
-    done_this_week: 3, avg_revisions: 1.1, has_blocked: false,
-    tasks: [
-      { id: '1', task_name: 'Banner Mạng xã hội Xuân 2025', status: 'assigned', has_red_flag: false, deadline: '2026-04-15' },
-    ],
-  },
-  {
-    id: 'u-de-2', name: 'Trần Thị B', active_tasks: 6, pending_tasks: 0,
-    done_this_week: 1, avg_revisions: 2.1, has_blocked: true,
-    tasks: [
-      { id: '3', task_name: 'Slide bài giảng tháng 4', status: 'feedback', has_red_flag: true, deadline: '2026-04-10' },
-    ],
-  },
-  {
-    id: 'u-de-3', name: 'Nguyễn C', active_tasks: 3, pending_tasks: 2,
-    done_this_week: 2, avg_revisions: 1.3, has_blocked: false,
-    tasks: [],
-  },
-]
+import { useDesignerWorkload } from '../hooks/useDesignerWorkload'
+import type { DesignerWorkload } from '../types/dashboard.types'
 
 const MAX_CAPACITY = 7
 
@@ -50,16 +11,12 @@ function nameToColor(name: string): string {
   return COLORS[Math.abs(hash) % COLORS.length]
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'Chờ nhận', assigned: 'Đã nhận', in_progress: 'Đang làm',
-  delivered: 'Đã giao', feedback: 'Feedback', done: 'Hoàn thành',
-}
-
 function DesignerCard({ designer }: { designer: DesignerWorkload }) {
   const [expanded, setExpanded] = useState(false)
   const avatarColor = nameToColor(designer.name)
   const total = designer.active_tasks + designer.pending_tasks
-  const capColor = total >= MAX_CAPACITY ? '#E11D48' : total >= 5 ? '#FF9F0A' : '#16A34A'
+  const capPct = Math.min(total / MAX_CAPACITY, 1)
+  const capColor = capPct >= 1 ? '#E11D48' : capPct >= 5 / MAX_CAPACITY ? '#FF9F0A' : '#16A34A'
   const reviseAlert = designer.avg_revisions > 2
 
   return (
@@ -105,43 +62,30 @@ function DesignerCard({ designer }: { designer: DesignerWorkload }) {
         )}
       </div>
 
-      {/* Stats grid — 3 metrics in a row */}
+      {/* Stats grid — 3 metrics */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3,1fr)',
-        gap: 1,
-        background: 'rgba(0,0,0,0.05)',
-        borderRadius: 10,
-        overflow: 'hidden',
-        marginBottom: 12,
+        display: 'grid', gridTemplateColumns: 'repeat(3,1fr)',
+        gap: 1, background: 'rgba(0,0,0,0.05)',
+        borderRadius: 10, overflow: 'hidden', marginBottom: 12,
       }}>
         {[
           { label: 'Đang làm', value: designer.active_tasks, color: '#2563EB' },
           { label: 'Done/tuần', value: designer.done_this_week, color: '#16A34A' },
-          { label: 'Revise TB', value: designer.avg_revisions.toFixed(1), color: reviseAlert ? '#E11D48' : '#1D1D1F' },
+          {
+            label: 'Revise TB',
+            value: designer.avg_revisions > 0 ? designer.avg_revisions.toFixed(1) : '—',
+            color: reviseAlert ? '#E11D48' : designer.avg_revisions > 0 ? '#1D1D1F' : '#AEAEB2',
+          },
         ].map((stat, i) => (
-          <div key={i} style={{
-            background: '#fff',
-            padding: '10px 0',
-            textAlign: 'center',
-          }}>
+          <div key={i} style={{ background: '#fff', padding: '10px 0', textAlign: 'center' }}>
             <p style={{
-              fontSize: 18,
-              fontWeight: 700,
-              color: stat.color,
-              margin: 0,
-              lineHeight: 1,
-              letterSpacing: '-0.02em',
-              fontVariantNumeric: 'tabular-nums',
+              fontSize: 18, fontWeight: 700, color: stat.color,
+              margin: 0, lineHeight: 1,
+              letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums',
             }}>
               {stat.value}
             </p>
-            <p style={{
-              fontSize: 10,
-              color: '#AEAEB2',
-              margin: '4px 0 0',
-              lineHeight: 1,
-            }}>
+            <p style={{ fontSize: 10, color: '#AEAEB2', margin: '4px 0 0', lineHeight: 1 }}>
               {stat.label}
             </p>
           </div>
@@ -161,13 +105,10 @@ function DesignerCard({ designer }: { designer: DesignerWorkload }) {
             {total}/{MAX_CAPACITY}
           </span>
         </div>
-        {/* Dot-based capacity — Apple-style */}
         <div style={{ display: 'flex', gap: 4 }}>
           {Array.from({ length: MAX_CAPACITY }).map((_, i) => (
             <div key={i} style={{
-              flex: 1,
-              height: 5,
-              borderRadius: 99,
+              flex: 1, height: 5, borderRadius: 99,
               background: i < total ? capColor : 'rgba(0,0,0,0.08)',
               transition: 'background 0.3s',
             }}/>
@@ -175,51 +116,73 @@ function DesignerCard({ designer }: { designer: DesignerWorkload }) {
         </div>
       </div>
 
-      {/* Expanded task list */}
-      {expanded && designer.tasks.length > 0 && (
+      {/* Expand chevron */}
+      <div style={{
+        display: 'flex', justifyContent: 'center', marginTop: 10,
+        color: '#AEAEB2', fontSize: 11,
+      }}>
+        {expanded ? '▲ Thu gọn' : '▼ Chi tiết'}
+      </div>
+
+      {/* Expanded detail */}
+      {expanded && (
         <div style={{
-          marginTop: 12,
-          paddingTop: 12,
+          marginTop: 10, paddingTop: 10,
           borderTop: '1px solid rgba(0,0,0,0.06)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 6,
+          display: 'flex', flexDirection: 'column', gap: 5,
         }}>
-          {designer.tasks.map(task => (
-            <div key={task.id} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '7px 10px',
-              borderRadius: 8,
-              background: task.has_red_flag ? 'rgba(225,29,72,0.04)' : 'rgba(0,0,0,0.02)',
-            }}>
-              <div style={{
-                width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                background: task.has_red_flag ? '#E11D48' : '#AEAEB2',
-              }}/>
-              <p style={{
-                fontSize: 11, color: '#3A3A3C', margin: 0, flex: 1, minWidth: 0,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>
-                {task.task_name}
-              </p>
-              <span style={{
-                fontSize: 10, fontWeight: 500,
-                color: task.has_red_flag ? '#E11D48' : '#6E6E73',
-                flexShrink: 0,
-              }}>
-                {STATUS_LABEL[task.status]}
-              </span>
-            </div>
-          ))}
+          {designer.active_tasks === 0 && designer.pending_tasks === 0 ? (
+            <p style={{ fontSize: 11, color: '#AEAEB2', textAlign: 'center', padding: '6px 0', margin: 0 }}>
+              Không có task đang chạy
+            </p>
+          ) : (
+            <>
+              {designer.active_tasks > 0 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '6px 10px', borderRadius: 8,
+                  background: 'rgba(37,99,235,0.04)',
+                }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: '#2563EB' }}/>
+                  <p style={{ fontSize: 11, color: '#3A3A3C', margin: 0 }}>
+                    {designer.active_tasks} task đang thực hiện
+                  </p>
+                </div>
+              )}
+              {designer.pending_tasks > 0 && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '6px 10px', borderRadius: 8,
+                  background: 'rgba(255,159,10,0.04)',
+                }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', flexShrink: 0, background: '#FF9F0A' }}/>
+                  <p style={{ fontSize: 11, color: '#3A3A3C', margin: 0 }}>
+                    {designer.pending_tasks} task chưa bắt đầu
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>
   )
 }
 
+function SkeletonCard() {
+  return (
+    <div style={{
+      background: '#fff', borderRadius: 14, height: 180,
+      border: '1px solid rgba(0,0,0,0.06)',
+      boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+      opacity: 0.6,
+    }}/>
+  )
+}
+
 export default function WorkloadPanel() {
+  const { data: workload, isLoading, isError } = useDesignerWorkload()
+
   return (
     <div style={{
       background: '#fff',
@@ -233,7 +196,7 @@ export default function WorkloadPanel() {
             Workload Designer
           </h3>
           <p style={{ fontSize: 12, color: '#AEAEB2', margin: '2px 0 0' }}>
-            Click card để xem task chi tiết
+            Năng lực thực tế từ hệ thống — click để xem chi tiết
           </p>
         </div>
         <span style={{
@@ -245,10 +208,17 @@ export default function WorkloadPanel() {
         </span>
       </div>
 
+      {isError && (
+        <p style={{ fontSize: 12, color: '#AEAEB2', textAlign: 'center', padding: '20px 0', margin: 0 }}>
+          Không thể tải dữ liệu workload
+        </p>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
-        {DESIGNER_WORKLOAD.map(d => (
-          <DesignerCard key={d.id} designer={d} />
-        ))}
+        {isLoading
+          ? [1, 2, 3].map(i => <SkeletonCard key={i} />)
+          : (workload ?? []).map(d => <DesignerCard key={d.id} designer={d} />)
+        }
       </div>
     </div>
   )

@@ -9,13 +9,14 @@ interface CardProps {
   label: string
   value: string | number
   sub: string
-  trend?: string
-  trendUp?: boolean
+  badge?: string
+  badgeColor?: string
+  badgeBg?: string
   accent?: boolean
   alert?: boolean
 }
 
-function StatCard({ label, value, sub, trend, trendUp, accent, alert }: CardProps) {
+function StatCard({ label, value, sub, badge, badgeColor, badgeBg, accent, alert }: CardProps) {
   const valueColor = accent ? '#2563EB' : alert ? '#E11D48' : '#1D1D1F'
 
   return (
@@ -27,7 +28,6 @@ function StatCard({ label, value, sub, trend, trendUp, accent, alert }: CardProp
       flexDirection: 'column',
       boxShadow: '0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)',
     }}>
-      {/* Label */}
       <p style={{
         fontSize: 11,
         fontWeight: 500,
@@ -40,7 +40,6 @@ function StatCard({ label, value, sub, trend, trendUp, accent, alert }: CardProp
         {label}
       </p>
 
-      {/* Primary number */}
       <p style={{
         fontSize: 28,
         fontWeight: 700,
@@ -53,7 +52,6 @@ function StatCard({ label, value, sub, trend, trendUp, accent, alert }: CardProp
         {value}
       </p>
 
-      {/* Sub + trend */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -64,7 +62,7 @@ function StatCard({ label, value, sub, trend, trendUp, accent, alert }: CardProp
         <p style={{ fontSize: 12, color: '#AEAEB2', margin: 0, lineHeight: 1.3, flex: 1, minWidth: 0 }}>
           {sub}
         </p>
-        {trend && (
+        {badge && (
           <span style={{
             fontSize: 10,
             fontWeight: 600,
@@ -72,23 +70,10 @@ function StatCard({ label, value, sub, trend, trendUp, accent, alert }: CardProp
             borderRadius: 99,
             flexShrink: 0,
             letterSpacing: '0.01em',
-            color: trendUp ? '#16A34A' : '#E11D48',
-            background: trendUp ? 'rgba(22,163,74,0.09)' : 'rgba(225,29,72,0.09)',
+            color: badgeColor,
+            background: badgeBg,
           }}>
-            {trend}
-          </span>
-        )}
-        {alert && !trend && (
-          <span style={{
-            fontSize: 10,
-            fontWeight: 600,
-            padding: '3px 7px',
-            borderRadius: 99,
-            flexShrink: 0,
-            color: '#E11D48',
-            background: 'rgba(225,29,72,0.09)',
-          }}>
-            Cần xử lý
+            {badge}
           </span>
         )}
       </div>
@@ -111,40 +96,71 @@ export default function StatCards({ stats, loading }: Props) {
     </div>
   )
 
-  const avgRevision = stats.total_orders > 0
-    ? (stats.in_progress_count / Math.max(stats.total_orders, 1) * 2.3).toFixed(1)
-    : '0.0'
-  const onTrack = Number(avgRevision) <= 2
+  // avg_revision_rounds đến từ backend — thật, không tự tính
+  const avg = stats.avg_revision_rounds ?? 0
+  const revisionOk = avg <= 1.5
+  const revisionWarn = avg > 1.5 && avg <= 2
+  const revisionBad = avg > 2
+
+  // Badge cho cần hỗ trợ
+  const needsAction = stats.active_red_flag_orders > 0 || stats.pending_assignment > 0
+
+  // Chỉ hiển thị done badge khi có data thật (> 0)
+  const doneBadge = stats.done_count > 0
+    ? { badge: `${stats.done_count} tháng này`, badgeColor: '#16A34A', badgeBg: 'rgba(22,163,74,0.09)' }
+    : {}
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+      {/* Card 1 — Đang thực hiện */}
       <StatCard
         label="Đang thực hiện"
         value={stats.in_progress_count}
-        sub={`Tổng ${stats.total_orders} order`}
-        trend="+12%"
-        trendUp
+        sub={`Trên tổng ${stats.total_orders} order`}
         accent
       />
+
+      {/* Card 2 — Hoàn thành */}
       <StatCard
-        label="Hoàn thành tháng này"
+        label="Hoàn thành"
         value={stats.done_count}
         sub="Bàn giao thành công"
-        trend={`+${stats.done_count}`}
-        trendUp
+        {...doneBadge}
       />
+
+      {/* Card 3 — Cần hỗ trợ */}
       <StatCard
         label="Cần hỗ trợ"
         value={stats.active_red_flag_orders}
-        sub="Order đang có vấn đề"
-        alert={stats.active_red_flag_orders > 0}
+        sub={stats.pending_assignment > 0
+          ? `${stats.pending_assignment} order chờ assign`
+          : 'Order đang có vấn đề'
+        }
+        alert={needsAction}
+        badge={needsAction ? 'Cần xử lý' : undefined}
+        badgeColor="#E11D48"
+        badgeBg="rgba(225,29,72,0.09)"
       />
+
+      {/* Card 4 — Avg Revision — từ backend thật */}
       <StatCard
         label="Avg. Revision"
-        value={`${avgRevision}×`}
-        sub="Mục tiêu dưới 2 lần"
-        trend={onTrack ? 'On track' : 'Cần cải thiện'}
-        trendUp={onTrack}
+        value={`${avg.toFixed(1)}×`}
+        sub="Mục tiêu ≤ 1.5 vòng"
+        badge={
+          revisionBad  ? 'Cần cải thiện' :
+          revisionWarn ? 'Chú ý'         :
+          revisionOk   ? 'On track'      : undefined
+        }
+        badgeColor={
+          revisionBad  ? '#E11D48' :
+          revisionWarn ? '#FF9F0A' : '#16A34A'
+        }
+        badgeBg={
+          revisionBad  ? 'rgba(225,29,72,0.09)' :
+          revisionWarn ? 'rgba(255,159,10,0.09)' : 'rgba(22,163,74,0.09)'
+        }
+        alert={revisionBad}
       />
     </div>
   )

@@ -32,6 +32,17 @@ export interface DashboardStats {
   active_red_flag_orders: number
   active_warn_flag_orders: number
   pending_assignment: number
+  avg_revision_rounds: number    // mean of revision_rounds across all orders
+}
+
+export interface DesignerWorkload {
+  id: string
+  name: string
+  active_tasks: number          // assigned + in_progress + feedback + delivered
+  pending_tasks: number         // pending (not yet started)
+  done_this_week: number        // done_at within last 7 days
+  avg_revisions: number         // mean revision_rounds for their orders
+  has_blocked: boolean          // any order has_red_flag
 }
 
 export type FilterTab = 'all' | 'pending' | 'active' | 'done' | 'flag'
