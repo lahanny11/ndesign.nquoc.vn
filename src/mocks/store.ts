@@ -121,6 +121,61 @@ export const PRODUCT_TYPE_MAP: Record<string, string> = {
   'pt-6': 'Custom',
 }
 
+// ─── Designer metadata (leave + member status) ───────────────────────────────
+
+export interface DesignerMeta {
+  id: string
+  name: string
+  member_status: 'new' | 'regular'
+  joined_at: string
+  training_note: string | null
+  leave: {
+    is_on_leave: boolean
+    leave_start: string
+    leave_end: string
+    reason: string
+    approved_by: string
+    handover_status: 'pending' | 'partial' | 'complete' | 'standby'
+    handover_to: string | null
+  } | null
+}
+
+export const designerMetas: DesignerMeta[] = [
+  {
+    id: 'u-de-1',
+    name: 'Lê Văn A',
+    member_status: 'regular',
+    joined_at: '2025-06-01',
+    training_note: null,
+    leave: null,
+  },
+  {
+    id: 'u-de-2',
+    name: 'Trần Thị B',
+    member_status: 'regular',
+    joined_at: '2025-03-15',
+    training_note: null,
+    // Trần Thị B đang nghỉ phép — thông tin từ HR ghi vào
+    leave: {
+      is_on_leave: true,
+      leave_start: '2026-04-10',
+      leave_end: '2026-04-18',
+      reason: 'Nghỉ phép năm',
+      approved_by: 'Nhi Le',
+      handover_status: 'partial',
+      handover_to: 'Lê Văn A',
+    },
+  },
+  {
+    id: 'u-de-3',
+    name: 'Nguyễn C',
+    member_status: 'new',               // Thành viên mới — vừa xong training
+    joined_at: '2026-03-20',
+    training_note: 'Hoàn thành training 15/4. Cần quan sát kỹ ở 2 order đầu tiên. Điểm mạnh: layout. Cần cải thiện: đọc brief kỹ hơn.',
+    leave: null,
+  },
+]
+
 let _counter = 8
 export function nextOrderNumber() {
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, '')

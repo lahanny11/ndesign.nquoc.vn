@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AppLayout from '../../../shared/layouts/AppLayout'
+import OnboardingTour from '../../onboarding/components/OnboardingTour'
 import StatCards from '../components/StatCards'
 import AlertBanner from '../components/AlertBanner'
 import FilterTabs from '../components/FilterTabs'
@@ -142,9 +143,24 @@ export default function DashboardPage() {
   const { activeTab, setActiveTab, panelOrderId, openPanel, closePanel } = useDashboardStore()
   const [formOpen, setFormOpen] = useState(false)
   const [selfAssigningId, setSelfAssigningId] = useState<string | null>(null)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   const role = useRoleStore(s => s.role)
   const { data: user } = useCurrentUser()
+
+  // Hiển thị onboarding tour cho designer mới — dùng sessionStorage để chỉ show 1 lần/session
+  // Production: check user.member_status === 'new' từ /me endpoint
+  // Mock: show cho mọi designer lần đầu vào trong session (sessionStorage clear = xem lại)
+  useEffect(() => {
+    if (role === 'designer') {
+      const key = `onboarding_seen_${user?.id ?? 'designer'}`
+      const seen = sessionStorage.getItem(key)
+      if (!seen) {
+        const timer = setTimeout(() => setShowOnboarding(true), 800)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [role, user?.id])
 
   const { data: ordersData, isLoading: ordersLoading } = useOrders(activeTab)
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
@@ -208,7 +224,7 @@ export default function DashboardPage() {
                 loading={statsLoading}
               />
               <AlertBanner flaggedOrders={flaggedOrders} />
-              <WorkloadPanel />
+              <WorkloadPanel isLeader={isLeader} />
               <FilterTabs
                 active={activeTab}
                 onChange={setActiveTab}
@@ -381,6 +397,16 @@ export default function DashboardPage() {
       </AppLayout>
 
       <OrderFormModal open={formOpen} onClose={() => setFormOpen(false)} />
+
+      {showOnboarding && (
+        <OnboardingTour
+          userName={user?.display_name ?? 'bạn'}
+          onDismiss={() => {
+            setShowOnboarding(false)
+            sessionStorage.setItem(`onboarding_seen_${user?.id ?? 'default'}`, '1')
+          }}
+        />
+      )}
     </>
   )
 }

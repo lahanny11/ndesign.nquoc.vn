@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { mockOrders } from '../store'
+import { mockOrders, designerMetas } from '../store'
 
 const BASE = 'http://localhost:3000'
 
@@ -139,18 +139,11 @@ export const dashboardHandlers = [
 
   // ─── GET /dashboard/workload — per-designer stats từ shared store ─────────────
   http.get(`${BASE}/api/v1/dashboard/workload`, () => {
-    const DESIGNERS = ['Lê Văn A', 'Trần Thị B', 'Nguyễn C']
-    const DESIGNER_IDS: Record<string, string> = {
-      'Lê Văn A': 'u-de-1',
-      'Trần Thị B': 'u-de-2',
-      'Nguyễn C': 'u-de-3',
-    }
-
     const oneWeekAgo = new Date()
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
 
-    const workload = DESIGNERS.map(name => {
-      const myOrders = mockOrders.filter(o => o.designer_name === name)
+    const workload = designerMetas.map(meta => {
+      const myOrders = mockOrders.filter(o => o.designer_name === meta.name)
       const active = myOrders.filter(o =>
         ['assigned', 'in_progress', 'feedback', 'delivered'].includes(o.status)
       ).length
@@ -164,17 +157,68 @@ export const dashboardHandlers = [
         : 0
       const hasBlocked = myOrders.some(o => o.has_red_flag)
 
+      // Nếu đang on_leave: tính số task chưa bàn giao
+      const unhandledCount = meta.leave?.is_on_leave
+        ? myOrders.filter(o => ['assigned', 'in_progress', 'feedback', 'delivered', 'pending'].includes(o.status)).length
+        : 0
+
       return {
-        id: DESIGNER_IDS[name],
-        name,
+        id: meta.id,
+        name: meta.name,
         active_tasks: active,
         pending_tasks: pending,
         done_this_week: doneThisWeek,
         avg_revisions: Math.round(avgRev * 10) / 10,
         has_blocked: hasBlocked,
+        leave: meta.leave ? { ...meta.leave, unhandled_tasks: unhandledCount } : null,
+        member_status: meta.member_status,
+        joined_at: meta.joined_at,
+        training_note: meta.training_note,
       }
     })
 
     return HttpResponse.json(workload)
+  }),
+
+  // ─── POST /leaves — HR hoặc Leader ghi nghỉ phép cho designer ────────────────
+  http.post(`${BASE}/api/v1/leaves`, async ({ request }) => {
+    const body = await request.json() as {
+      designer_id: string
+      leave_start: string
+      leave_end: string
+      reason: string
+      handover_status: string
+      handover_to: string | null
+    }
+    const meta = designerMetas.find(m => m.id === body.designer_id)
+    if (!meta) return HttpResponse.json({ message: 'Designer not found' }, { status: 404 })
+
+    meta.leave = {
+      is_on_leave: true,
+      leave_start: body.leave_start,
+      leave_end: body.leave_end,
+      reason: body.reason ?? 'Nghỉ phép',
+      approved_by: 'Nhi Le',
+      handover_status: (body.handover_status as 'pending'|'partial'|'complete'|'standby') ?? 'pending',
+      handover_to: body.handover_to ?? null,
+    }
+    return HttpResponse.json({ success: true })
+  }),
+
+  // ─── DELETE /leaves/:designer_id — Kết thúc nghỉ phép, quay lại làm ─────────
+  http.delete(`${BASE}/api/v1/leaves/:designer_id`, ({ params }) => {
+    const meta = designerMetas.find(m => m.id === params.designer_id)
+    if (!meta) return HttpResponse.json({ message: 'Designer not found' }, { status: 404 })
+    meta.leave = null
+    return HttpResponse.json({ success: true })
+  }),
+
+  // ─── PATCH /designers/:id/member-status — Promote từ new → regular ───────────
+  http.patch(`${BASE}/api/v1/designers/:id/member-status`, async ({ params, request }) => {
+    const body = await request.json() as { member_status: 'new' | 'regular' }
+    const meta = designerMetas.find(m => m.id === params.id)
+    if (!meta) return HttpResponse.json({ message: 'Not found' }, { status: 404 })
+    meta.member_status = body.member_status
+    return HttpResponse.json({ success: true })
   }),
 ]

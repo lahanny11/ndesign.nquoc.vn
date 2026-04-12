@@ -35,6 +35,20 @@ export interface DashboardStats {
   avg_revision_rounds: number    // mean of revision_rounds across all orders
 }
 
+export type MemberStatus = 'new' | 'regular'
+export type HandoverStatus = 'pending' | 'partial' | 'complete' | 'standby'
+
+export interface LeaveInfo {
+  is_on_leave: boolean
+  leave_start: string           // ISO date
+  leave_end: string             // ISO date
+  reason: string                // 'Nghỉ phép' | 'Nghỉ bệnh' | 'Nghỉ cưới' | ...
+  approved_by: string           // display_name of approver
+  unhandled_tasks: number       // tasks not yet handed over
+  handover_status: HandoverStatus
+  handover_to: string | null    // display_name of receiving designer
+}
+
 export interface DesignerWorkload {
   id: string
   name: string
@@ -43,6 +57,12 @@ export interface DesignerWorkload {
   done_this_week: number        // done_at within last 7 days
   avg_revisions: number         // mean revision_rounds for their orders
   has_blocked: boolean          // any order has_red_flag
+  // Leave management
+  leave: LeaveInfo | null
+  // New member
+  member_status: MemberStatus
+  joined_at: string             // ISO date
+  training_note: string | null  // note from leader visible only to leader/co_leader
 }
 
 export type FilterTab = 'all' | 'pending' | 'active' | 'done' | 'flag'
