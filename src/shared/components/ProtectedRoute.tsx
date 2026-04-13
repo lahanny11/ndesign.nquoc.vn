@@ -1,18 +1,22 @@
+'use client'
+
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../config/supabase'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
 }
 
+const DEV_BYPASS = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEV_BYPASS === 'true'
+
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
 
   useEffect(() => {
-    // Dev bypass: skip auth khi VITE_DEV_BYPASS=true
-    if (import.meta.env.VITE_DEV_BYPASS === 'true') {
+    if (DEV_BYPASS) {
       setAuthenticated(true)
       setLoading(false)
       return
@@ -25,10 +29,11 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthenticated(!!session)
+      if (!session) router.replace('/')
     })
 
     return () => listener.subscription.unsubscribe()
-  }, [])
+  }, [router])
 
   if (loading) {
     return (
@@ -38,7 +43,10 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     )
   }
 
-  if (!authenticated) return <Navigate to="/" replace />
+  if (!authenticated) {
+    router.replace('/')
+    return null
+  }
 
   return <>{children}</>
 }

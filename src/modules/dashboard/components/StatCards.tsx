@@ -83,7 +83,7 @@ function StatCard({ label, value, sub, badge, badgeColor, badgeBg, accent, alert
 
 export default function StatCards({ stats, loading }: Props) {
   if (loading) return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+    <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
       {[...Array(4)].map((_, i) => (
         <div key={i} style={{
           background: '#fff',
@@ -111,7 +111,7 @@ export default function StatCards({ stats, loading }: Props) {
     : {}
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
+    <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
       {/* Card 1 — Đang thực hiện */}
       <StatCard
         label="Đang thực hiện"

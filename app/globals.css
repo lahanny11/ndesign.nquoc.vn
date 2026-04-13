@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-playfair: 'Playfair Display', serif;
+  --font-inter: 'Inter', sans-serif;
+
+  /* Design tokens — NhiLe brand palette */
+  --color-acc:  #000000;
+  --color-al:   #F3F4F6;
+  --color-ad:   #1a1a1a;
+  --color-blk:  #1D1D1F;
+  --color-w:    #FFFFFF;
+  --color-g50:  #F5F5F7;
+  --color-g100: #F3F4F6;
+  --color-g200: #E5E7EB;
+  --color-g300: #D1D5DB;
+  --color-g400: #9CA3AF;
+  --color-g600: #6B7280;
+  --color-ok:   #16A34A;
+  --color-okl:  #F0FDF4;
+  --color-warn: #EA580C;
+  --color-warnl:#FFF7ED;
+  --color-red:  #E11D48;
+  --color-redl: #FFF1F2;
+  --color-blue: #2563EB;
+  --color-bluel:#EFF6FF;
+  --color-navy: #1B3A6B;
+  --color-teal: #00838F;
+  --color-gold: #E07B39;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  background: #F5F5F7;
+  color: #1D1D1F;
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+}
+
+/* ── RESPONSIVE LAYOUT ──────────────────────────────────────────────────── */
+
+/* Desktop: full fixed-height app */
+@media (min-width: 769px) {
+  body { overflow: hidden; }
+  .app-root { height: 100vh; overflow: hidden; }
+}
+
+/* Mobile < 768px: scrollable layout */
+@media (max-width: 768px) {
+  body { overflow: auto; }
+  .app-root { height: auto; min-height: 100vh; }
+
+  /* Sidebar — slide-in overlay */
+  .app-sidebar {
+    position: fixed !important;
+    left: -80px !important;
+    top: 0;
+    bottom: 0;
+    z-index: 200;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none !important;
+  }
+  .app-sidebar.sidebar-open {
+    left: 0 !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18) !important;
+  }
+
+  /* Overlay backdrop */
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+  .sidebar-backdrop.sidebar-open { display: block; }
+
+  /* Main content — full width on mobile */
+  .app-main { width: 100% !important; }
+
+  /* Grid overrides */
+  .stat-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .stat-grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+  .order-grid  { grid-template-columns: repeat(1, 1fr) !important; }
+  .workload-grid { grid-template-columns: repeat(1, 1fr) !important; }
+
+  /* Tracking panel — full width */
+  .tracking-panel {
+    width: 100% !important;
+    right: 0 !important;
+    left: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  /* Hide hamburger toggle helper */
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .mobile-only { display: none !important; }
+  .desktop-only { display: flex !important; }
+}
+
+/* ── ANIMATIONS ──────────────────────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

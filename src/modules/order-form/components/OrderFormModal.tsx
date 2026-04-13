@@ -32,7 +32,7 @@ export default function OrderFormModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const { data: user } = useCurrentUser()
   const qc = useQueryClient()
-  const DEV = import.meta.env.VITE_DEV_BYPASS === 'true'
+  const DEV = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEV_BYPASS === 'true'
 
   const { data: productTypes = [] } = useQuery({
     queryKey: ['product-types'],

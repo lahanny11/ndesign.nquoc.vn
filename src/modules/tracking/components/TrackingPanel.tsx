@@ -204,7 +204,7 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
       />
 
       {/* Panel */}
-      <div style={{
+      <div className="tracking-panel" style={{
         position: 'fixed', top: 0, right: 0, bottom: 0,
         width: 480,
         background: '#fff',

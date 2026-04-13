@@ -1,15 +1,17 @@
+'use client'
+
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../../../shared/config/supabase'
 
 export default function LoginPage() {
-  const navigate = useNavigate()
+  const router = useRouter()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate('/dashboard', { replace: true })
+      if (data.session) router.replace('/dashboard')
     })
-  }, [navigate])
+  }, [router])
 
   const handleGoogleLogin = async () => {
     await supabase.auth.signInWithOAuth({

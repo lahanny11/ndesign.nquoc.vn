@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-const DEV_BYPASS = import.meta.env.VITE_DEV_BYPASS === 'true'
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const DEV_BYPASS = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEV_BYPASS === 'true'
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   // Dev mode: skip Supabase (placeholder credentials would throw)

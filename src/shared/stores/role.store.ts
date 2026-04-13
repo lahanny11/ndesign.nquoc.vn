@@ -7,21 +7,23 @@ interface RoleStore {
   setRole: (role: AppRole) => void
 }
 
-// Read from URL param on init
+// Guard SSR: window không tồn tại trên server
 function getRoleFromUrl(): AppRole {
+  if (typeof window === 'undefined') return 'design_leader'
   const params = new URLSearchParams(window.location.search)
   const r = params.get('role')
   if (r === 'designer' || r === 'orderer' || r === 'design_leader' || r === 'co_leader') return r
-  return 'design_leader' // default
+  return 'design_leader'
 }
 
 export const useRoleStore = create<RoleStore>((set) => ({
   role: getRoleFromUrl(),
   setRole: (role) => {
-    // Update URL param without reload
-    const url = new URL(window.location.href)
-    url.searchParams.set('role', role)
-    window.history.replaceState({}, '', url.toString())
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.set('role', role)
+      window.history.replaceState({}, '', url.toString())
+    }
     set({ role })
   },
 }))

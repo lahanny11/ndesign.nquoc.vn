@@ -11,7 +11,7 @@ interface Props {
 
 export default function OrderGrid({ orders, loading, onTrack, onSelfAssign, selfAssigningId }: Props) {
   if (loading) return (
-    <div className="grid grid-cols-4 gap-2.5">
+    <div className="order-grid grid grid-cols-4 gap-2.5">
       {[...Array(8)].map((_, i) => (
         <div key={i} className="bg-white rounded-xl border border-[#E4E0EF] h-52 animate-pulse" />
       ))}
@@ -29,7 +29,7 @@ export default function OrderGrid({ orders, loading, onTrack, onSelfAssign, self
   )
 
   return (
-    <div className="grid grid-cols-4 gap-2.5 pb-5 items-start">
+    <div className="order-grid grid grid-cols-4 gap-2.5 pb-5 items-start">
       {orders.map((order, i) => (
         <OrderCard
           key={order.id}

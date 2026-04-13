@@ -69,7 +69,7 @@ function DesignerStatCards({ stats }: DesignerStatCardsProps) {
     { label: 'Revise TB của tôi', value: stats.avgRevision, color: '#1D1D1F' },
   ]
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+    <div className="stat-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
       {cards.map(c => (
         <div key={c.label} style={{
           background: '#fff', borderRadius: 16, padding: '18px 20px 16px',
@@ -95,7 +95,7 @@ const DESIGNER_TABS: { key: FilterTab; label: string }[] = [
   { key: 'all',     label: 'Tất cả' },
   { key: 'pending', label: 'Chờ nhận' },   // pool order có thể self-assign
   { key: 'active',  label: 'Đang làm' },
-  { key: 'done',    label: 'Done' },
+  { key: 'done',    label: 'Hoàn thành' },
 ]
 
 interface SimplifiedTabsProps {
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                   : 0
                 const revOk = myAvgRev <= 1.5
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  <div className="stat-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                     <SimpleStatCard label="Order đang chạy" value={activeOrderCount} color="#2563EB" sub={`Tổng ${myOrders.length} order`} />
                     <SimpleStatCard label="Hoàn thành" value={doneCount} color="#16A34A" sub="Bàn giao thành công" />
                     <SimpleStatCard
@@ -357,7 +357,7 @@ export default function DashboardPage() {
                         <strong style={{ color: revBad ? '#E11D48' : revWarn ? '#FF9F0A' : '#16A34A', fontVariantNumeric: 'tabular-nums' }}>
                           {orders.length > 0 ? `${designerStats.avgRevision}×` : '—'}
                         </strong>
-                        {' · '}Mục tiêu ≤ 1.5 vòng
+                        {' · '}Mục tiêu ≤ 1.5 lần sửa
                       </p>
                     </div>
                     {badge && (
