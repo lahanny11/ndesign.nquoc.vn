@@ -1,5 +1,10 @@
-export type UserRole = 'orderer' | 'designer' | 'design_leader' | 'co_leader'
+// src/shared/types/auth.types.ts
+// Re-exports from the canonical auth types file.
+// Keep this shim so existing imports from auth.types continue to compile.
 
+export type { Role as UserRole, AuthUser, TeamSlug, MemberStatus } from './auth'
+
+// Legacy shape kept for backward compat with useCurrentUser / old components
 export interface Team {
   id: string
   name: string
@@ -11,7 +16,7 @@ export interface UserProfile {
   email: string
   display_name: string
   avatar_url: string | null
-  role: UserRole
+  role: import('./auth').Role
   team: Team
   is_active: boolean
 }

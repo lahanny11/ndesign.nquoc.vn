@@ -214,7 +214,7 @@ function RoleSwitcher() {
 }
 
 export default function AppLayout({ children, onCreateOrder, activeNav, title }: AppLayoutProps) {
-  const { data: user } = useCurrentUser()
+  const { user } = useCurrentUser()
   const [notifOpen, setNotifOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
@@ -311,14 +311,14 @@ export default function AppLayout({ children, onCreateOrder, activeNav, title }:
             boxShadow: '0 1px 4px rgba(0,0,0,0.12)',
           }}>
             <span style={{ color: '#fff', fontSize: 12, fontWeight: 700 }}>
-              {user?.display_name?.[0] ?? 'U'}
+              {user?.full_name?.[0] ?? 'U'}
             </span>
           </div>
           <div className="absolute left-full ml-2.5 bottom-0 px-2.5 py-1.5 bg-[#1D1D1F] text-white
             text-[11px] font-semibold rounded-[8px] whitespace-nowrap opacity-0 group-hover:opacity-100
             pointer-events-none transition-opacity z-50"
             style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.18)' }}>
-            {user?.display_name ?? 'Demo User'}
+            {user?.full_name ?? 'Demo User'}
           </div>
         </div>
       </aside>

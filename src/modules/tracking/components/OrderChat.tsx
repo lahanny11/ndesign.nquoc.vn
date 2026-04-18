@@ -87,7 +87,7 @@ interface Props {
 }
 
 export default function OrderChat({ orderId }: Props) {
-  const { data: user } = useCurrentUser()
+  const { user } = useCurrentUser()
   const role = useRoleStore(s => s.role)
   const storageKey = `ndesign_chat_${orderId}`
 
@@ -132,7 +132,7 @@ export default function OrderChat({ orderId }: Props) {
 
     const newMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
-      sender_name: user?.display_name ?? 'Bạn',
+      sender_name: user?.full_name ?? 'Bạn',
       sender_role: role,
       content,
       timestamp: new Date().toISOString(),

@@ -30,7 +30,7 @@ export default function OrderFormModal({ open, onClose }: Props) {
   const [submitted, setSubmitted] = useState(false)
   const [orderNumber, setOrderNumber] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const { data: user } = useCurrentUser()
+  const { user } = useCurrentUser()
   const qc = useQueryClient()
   const DEV = process.env.NODE_ENV !== 'production' || process.env.NEXT_PUBLIC_DEV_BYPASS === 'true'
 
@@ -49,7 +49,7 @@ export default function OrderFormModal({ open, onClose }: Props) {
   })
 
   useEffect(() => {
-    if (user) setForm(f => ({ ...f, step1: { ...f.step1, orderer_name: user.display_name, team_id: user.team?.id ?? '' } }))
+    if (user) setForm(f => ({ ...f, step1: { ...f.step1, orderer_name: user.full_name, team_id: user.team_slug ?? '' } }))
   }, [user])
 
   const submitMutation = useMutation({

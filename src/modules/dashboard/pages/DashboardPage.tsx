@@ -146,21 +146,21 @@ export default function DashboardPage() {
   const [showOnboarding, setShowOnboarding] = useState(false)
 
   const role = useRoleStore(s => s.role)
-  const { data: user } = useCurrentUser()
+  const { user } = useCurrentUser()
 
   // Hiển thị onboarding tour cho designer mới — dùng sessionStorage để chỉ show 1 lần/session
   // Production: check user.member_status === 'new' từ /me endpoint
   // Mock: show cho mọi designer lần đầu vào trong session (sessionStorage clear = xem lại)
   useEffect(() => {
     if (role === 'designer') {
-      const key = `onboarding_seen_${user?.id ?? 'designer'}`
+      const key = `onboarding_seen_${user?.person_id ?? 'designer'}`
       const seen = sessionStorage.getItem(key)
       if (!seen) {
         const timer = setTimeout(() => setShowOnboarding(true), 800)
         return () => clearTimeout(timer)
       }
     }
-  }, [role, user?.id])
+  }, [role, user?.person_id])
 
   const { data: ordersData, isLoading: ordersLoading } = useOrders(activeTab)
   const { data: stats, isLoading: statsLoading } = useDashboardStats()
@@ -248,12 +248,12 @@ export default function DashboardPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
                   <span style={{ color: 'white', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
-                    {user?.display_name?.[0] ?? '?'}
+                    {user?.full_name?.[0] ?? '?'}
                   </span>
                 </div>
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 600, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>
-                    Xin chào, {user?.display_name ?? 'bạn'}!
+                    Xin chào, {user?.full_name ?? 'bạn'}!
                   </p>
                   <p style={{ fontSize: 12, color: '#AEAEB2', margin: '3px 0 0' }}>
                     Bạn có {activeOrderCount} order đang xử lý
@@ -311,12 +311,12 @@ export default function DashboardPage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 }}>
                   <span style={{ color: 'white', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em' }}>
-                    {user?.display_name?.[0] ?? '?'}
+                    {user?.full_name?.[0] ?? '?'}
                   </span>
                 </div>
                 <div>
                   <p style={{ fontSize: 15, fontWeight: 600, color: '#1D1D1F', margin: 0, letterSpacing: '-0.01em' }}>
-                    Xin chào, {user?.display_name ?? 'bạn'}!
+                    Xin chào, {user?.full_name ?? 'bạn'}!
                   </p>
                   <p style={{ fontSize: 12, color: '#AEAEB2', margin: '3px 0 0' }}>
                     Bạn có {designerStats.active} task đang làm hôm nay
@@ -400,10 +400,10 @@ export default function DashboardPage() {
 
       {showOnboarding && (
         <OnboardingTour
-          userName={user?.display_name ?? 'bạn'}
+          userName={user?.full_name ?? 'bạn'}
           onDismiss={() => {
             setShowOnboarding(false)
-            sessionStorage.setItem(`onboarding_seen_${user?.id ?? 'default'}`, '1')
+            sessionStorage.setItem(`onboarding_seen_${user?.person_id ?? 'default'}`, '1')
           }}
         />
       )}
