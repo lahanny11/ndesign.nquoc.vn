@@ -275,12 +275,69 @@ export const orderHandlers = [
       data: { data: cards, meta: { page, limit, total: items.length, has_next: items.length > page * limit, next_cursor: null } },
     })
   }),
-  http.get('*/api/v1/orders/:id',  async ({ params }) => {
+  http.get('*/api/v1/orders/:id', async ({ params }) => {
     const person = await getCurrentMockPerson()
     if (!person) return unauthorized()
     const order = MOCK_ORDERS_ALL.find(o => o.id === params.id)
     if (!order) return notFound()
-    return HttpResponse.json({ data: order })
+
+    // Map raw Order → OrderDetail shape mà TrackingPanel expect
+    const NOW_MS = new Date('2026-05-08T09:00:00Z').getTime()
+    const dlMs = new Date(order.deadline + 'T23:59:59Z').getTime()
+    const diffDays = Math.round((dlMs - NOW_MS) / 86400000)
+    const ontime =
+      order.status === 'done'  ? 'Đúng hạn' :
+      order.is_overdue         ? `Trễ ${Math.abs(diffDays)} ngày` :
+      diffDays < 0             ? `Trễ ${Math.abs(diffDays)} ngày` :
+      diffDays <= 1            ? `Còn ${Math.max(diffDays, 0)} ngày` :
+                                 `Sớm ${diffDays} ngày`
+
+    const STEP_NAMES = [
+      { id: 's1', name: 'Order đã gửi' },
+      { id: 's2', name: 'Designer nhận task' },
+      { id: 's3', name: 'Bắt đầu thực hiện' },
+      { id: 's4', name: 'Giao sản phẩm lần đầu' },
+      { id: 's5', name: 'Feedback & Chỉnh sửa' },
+      { id: 's6', name: 'Bàn giao hoàn tất' },
+    ]
+    const prog = order.milestone_progress
+    const steps = STEP_NAMES.map((s, i) => {
+      const stepIdx = i + 1
+      const isFlagged = order.has_red_flag && stepIdx === Math.min(prog, 6)
+      const state = isFlagged                        ? 'flagged'
+        : stepIdx <= Math.floor(prog * 6 / 7)        ? 'done'
+        : stepIdx === Math.ceil(prog * 6 / 7) || stepIdx === Math.min(prog, 6) ? 'active'
+        : 'pending'
+      return {
+        id: s.id, name: s.name, state, time: '',
+        desc: '',
+        checks: [] as { ok: boolean | null; text: string }[],
+      }
+    })
+
+    const detail = {
+      id: order.id,
+      title: order.task_name,
+      type: ptName(order.product_type_id),
+      team: teamName(order.team_id),
+      designer: order.designer_id ? designerName(order.designer_id) : null,
+      deadline: order.deadline,
+      status: order.status === 'active' ? 'in_progress' : order.status,
+      flag: order.has_red_flag ? 'red' : order.has_warn_flag ? 'warn' : null,
+      metrics: {
+        rounds: order.revision_count,
+        ontime,
+        comms: order.revision_count * 2 + 3,
+        briefCheck: (order.brief?.length ?? 0) >= 30,
+      },
+      redFlags: order.has_red_flag
+        ? [`Vòng revise ≥ ${order.revision_count}`, order.is_overdue ? `Trễ ${Math.abs(diffDays)} ngày so với deadline` : '']
+            .filter(Boolean)
+        : [],
+      steps,
+      deliveries: [],
+    }
+    return HttpResponse.json({ data: detail })
   }),
   http.post('*/api/v1/orders',     async ({ request }) => {
     const id = await getCurrentMockUserId()
