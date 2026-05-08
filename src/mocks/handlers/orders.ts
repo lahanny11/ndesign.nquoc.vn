@@ -315,27 +315,117 @@ export const orderHandlers = [
       }
     })
 
+    // ─── Performance insights — Designer × Orderer scorecards ────────────────
+    const designerName_ = order.designer_id ? designerName(order.designer_id) : null
+    const ordererName_  = ordererName(order.orderer_id)
+
+    // Mock metrics theo from designer_id (có chủ ý đa dạng để demo)
+    const DESIGNER_METRICS: Record<string, {grade:'A'|'B'|'C', resp:number, checkin:number, rev:number, ontime:number, done:number}> = {
+      'user-des-01': { grade: 'A', resp: 1.5, checkin: 95, rev: 0.8, ontime: 92, done: 7 },
+      'user-des-02': { grade: 'C', resp: 6.2, checkin: 65, rev: 2.3, ontime: 70, done: 5 },
+      'user-des-03': { grade: 'B', resp: 3.0, checkin: 85, rev: 1.0, ontime: 88, done: 4 },
+      'user-des-04': { grade: 'A', resp: 1.0, checkin: 100, rev: 0.5, ontime: 100, done: 2 },
+      'user-des-05': { grade: 'B', resp: 4.5, checkin: 80, rev: 1.5, ontime: 75, done: 1 },
+    }
+    const ORDERER_METRICS: Record<string, {brief:number, resp:number, rev:number, returned:number}> = {
+      'user-ord-01': { brief: 88, resp: 2.0, rev: 1.2, returned: 0 },
+      'user-ord-02': { brief: 72, resp: 5.5, rev: 1.6, returned: 1 },
+      'user-ord-03': { brief: 55, resp: 8.0, rev: 2.8, returned: 3 },  // Order 3 — bad orderer
+      'user-ord-04': { brief: 95, resp: 1.5, rev: 0.5, returned: 0 },
+      'user-ord-05': { brief: 80, resp: 3.0, rev: 1.0, returned: 0 },
+      'user-ord-06': { brief: 70, resp: 4.0, rev: 1.5, returned: 1 },
+      'user-ord-07': { brief: 75, resp: 2.5, rev: 1.0, returned: 0 },
+    }
+    const dm = DESIGNER_METRICS[order.designer_id ?? ''] ?? { grade: 'B' as const, resp: 3, checkin: 80, rev: 1.2, ontime: 85, done: 3 }
+    const om = ORDERER_METRICS[order.orderer_id] ?? { brief: 75, resp: 3, rev: 1.2, returned: 0 }
+
+    // Timing per milestone — ước lượng theo milestone_progress
+    const createdMs = new Date(order.created_at).getTime()
+    const totalDays = Math.max(1, Math.round((NOW_MS - createdMs) / 86400000))
+    const timing = [
+      { label: 'Order → Assign',       duration_hours: order.designer_id ? Math.min(20, totalDays * 4) : 26, sla_hours: 24 },
+      { label: 'Assign → Bắt đầu',     duration_hours: order.milestone_progress >= 3 ? 6                   : 12, sla_hours: 8  },
+      { label: 'Làm → Giao bản đầu',   duration_hours: order.milestone_progress >= 4 ? totalDays * 12      : 0,  sla_hours: 48 },
+      { label: 'Feedback → Revise',    duration_hours: order.revision_count > 0      ? order.revision_count * 16 : 0, sla_hours: 24 },
+      { label: 'Revise → Hoàn tất',    duration_hours: order.status === 'done'       ? totalDays * 4         : 0,  sla_hours: 24 },
+    ].map(t => ({
+      ...t,
+      status: (t.duration_hours === 0 ? 'on_track' : t.duration_hours > t.sla_hours * 1.2 ? 'over' : t.duration_hours < t.sla_hours * 0.8 ? 'under' : 'on_track') as 'over' | 'under' | 'on_track',
+    }))
+
+    // Activity log — nhiều event chi tiết để demo
+    const events: { timestamp: string; actor: string; actor_role: 'designer' | 'orderer' | 'leader' | 'system'; action: string; note?: string }[] = []
+    events.push({ timestamp: order.created_at, actor: ordererName_, actor_role: 'orderer', action: 'tạo order', note: order.brief?.slice(0, 100) })
+    if (order.designer_id) {
+      const assignAt = new Date(createdMs + 18 * 3600000).toISOString()
+      events.push({ timestamp: assignAt, actor: 'Design Leader', actor_role: 'leader', action: `assign cho ${designerName_}` })
+      events.push({ timestamp: new Date(createdMs + 24 * 3600000).toISOString(), actor: designerName_!, actor_role: 'designer', action: 'nhận task & bắt đầu làm' })
+      if (order.last_checkin_at) {
+        events.push({ timestamp: order.last_checkin_at, actor: designerName_!, actor_role: 'designer', action: 'check-in tiến độ' })
+      }
+    }
+    if (order.milestone_progress >= 4) {
+      const deliverAt = new Date(createdMs + totalDays * 86400000 * 0.6).toISOString()
+      events.push({ timestamp: deliverAt, actor: designerName_ ?? '?', actor_role: 'designer', action: 'giao bản đầu', note: 'File Canva + 3 size export' })
+    }
+    for (let i = 1; i <= order.revision_count; i++) {
+      const fbAt = new Date(createdMs + (totalDays * 0.6 + i) * 86400000).toISOString()
+      events.push({ timestamp: fbAt, actor: ordererName_, actor_role: 'orderer', action: `gửi feedback vòng ${i}`, note: i === order.revision_count ? 'Logo chưa đúng vị trí, font chữ quote cần tăng lên 1pt' : 'Cần điều chỉnh tone màu nhạt hơn' })
+      const revAt = new Date(new Date(fbAt).getTime() + 12 * 3600000).toISOString()
+      events.push({ timestamp: revAt, actor: designerName_ ?? '?', actor_role: 'designer', action: `revise vòng ${i}` })
+    }
+    if (order.has_red_flag) {
+      events.push({ timestamp: new Date(NOW_MS - 6 * 3600000).toISOString(), actor: 'System', actor_role: 'system', action: 'gắn cờ đỏ', note: `Vòng revise ${order.revision_count} ≥ 3 + trễ ${Math.abs(diffDays)} ngày` })
+    }
+    if (order.status === 'done') {
+      events.push({ timestamp: order.updated_at, actor: ordererName_, actor_role: 'orderer', action: 'xác nhận hoàn thành ✓' })
+    }
+
+    const insights = {
+      designer: {
+        name: designerName_,
+        initial: designerName_?.[0] ?? '?',
+        grade: order.designer_id ? dm.grade : null,
+        response_avg_hours: dm.resp,
+        checkin_compliance: dm.checkin,
+        revision_avg: dm.rev,
+        ontime_rate: dm.ontime,
+        tasks_done_30d: dm.done,
+      },
+      orderer: {
+        name: ordererName_,
+        team: teamName(order.team_id),
+        brief_quality_score: om.brief,
+        response_avg_hours: om.resp,
+        revision_avg: om.rev,
+        brief_returned: om.returned,
+      },
+      timing,
+      activity: events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 8),
+    }
+
     const detail = {
       id: order.id,
       title: order.task_name,
       type: ptName(order.product_type_id),
       team: teamName(order.team_id),
-      designer: order.designer_id ? designerName(order.designer_id) : null,
+      designer: designerName_,
       deadline: order.deadline,
       status: order.status === 'active' ? 'in_progress' : order.status,
-      flag: order.has_red_flag ? 'red' : order.has_warn_flag ? 'warn' : null,
+      flag: (order.has_red_flag ? 'red' : order.has_warn_flag ? 'warn' : null) as 'red' | 'warn' | null,
       metrics: {
         rounds: order.revision_count,
         ontime,
-        comms: order.revision_count * 2 + 3,
+        comms: events.length,
         briefCheck: (order.brief?.length ?? 0) >= 30,
       },
       redFlags: order.has_red_flag
-        ? [`Vòng revise ≥ ${order.revision_count}`, order.is_overdue ? `Trễ ${Math.abs(diffDays)} ngày so với deadline` : '']
+        ? [`Vòng revise ${order.revision_count} (≥ 3)`, order.is_overdue ? `Trễ ${Math.abs(diffDays)} ngày so với deadline` : '', om.brief < 60 ? `Brief từ ${ordererName_} chất lượng thấp (${om.brief}/100)` : '']
             .filter(Boolean)
         : [],
       steps,
       deliveries: [],
+      insights,
     }
     return HttpResponse.json({ data: detail })
   }),

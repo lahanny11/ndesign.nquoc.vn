@@ -1,6 +1,7 @@
 import type { OrderDetail, TimelineStep } from '../types/tracking.types'
 import OrderChat from './OrderChat'
 import DeliverySection from './DeliverySection'
+import PerformanceInsights from './PerformanceInsights'
 
 interface Props {
   order: OrderDetail | null
@@ -396,6 +397,9 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
               </div>
             </div>
           </div>
+
+          {/* Performance Insights — đo hiệu suất Designer × Orderer */}
+          {order.insights && <PerformanceInsights insights={order.insights}/>}
 
           {/* Timeline label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
