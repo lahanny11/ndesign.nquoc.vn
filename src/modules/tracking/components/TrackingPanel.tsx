@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import type { OrderDetail, TimelineStep } from '../types/tracking.types'
 import OrderChat from './OrderChat'
 import DeliverySection from './DeliverySection'
 import PerformanceInsights from './PerformanceInsights'
+
+type TrackTab = 'timeline' | 'performance' | 'activity'
 
 interface Props {
   order: OrderDetail | null
@@ -175,6 +178,7 @@ function Step({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
 }
 
 export default function TrackingPanel({ order, open, onClose }: Props) {
+  const [tab, setTab] = useState<TrackTab>('timeline')
   if (!order) return null
 
   const isLate = order.metrics.ontime.includes('Trễ') || order.metrics.ontime.includes('QUÁ')
@@ -272,10 +276,38 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
           </button>
         </div>
 
+        {/* Tabs */}
+        <div style={{
+          display: 'flex', padding: '8px 20px 0', gap: 4,
+          borderBottom: '1px solid rgba(0,0,0,0.07)', flexShrink: 0,
+        }}>
+          {([
+            { k: 'timeline',    label: 'Tiến độ' },
+            { k: 'performance', label: 'Hiệu suất' },
+            { k: 'activity',    label: 'Hoạt động' },
+          ] as { k: TrackTab; label: string }[]).map(t => {
+            const active = tab === t.k
+            return (
+              <button
+                key={t.k}
+                onClick={() => setTab(t.k)}
+                style={{
+                  padding: '8px 14px', border: 'none', background: 'transparent',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  color: active ? '#1D1D1F' : '#AEAEB2',
+                  borderBottom: `2px solid ${active ? '#1D1D1F' : 'transparent'}`,
+                  marginBottom: -1, transition: 'all 0.15s',
+                }}
+              >{t.label}</button>
+            )
+          })}
+        </div>
+
         {/* Scrollable body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
 
-          {/* Flag alerts */}
+          {/* Flag alerts — luôn hiện ở mọi tab khi có */}
           {order.flag === 'red' && order.redFlags && (
             <div style={{
               background: 'rgba(225,29,72,0.05)',
@@ -338,6 +370,7 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
             </div>
           )}
 
+          {tab === 'timeline' && (<>
           {/* Metrics — 3 col grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
             {/* Revision */}
@@ -398,9 +431,6 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
             </div>
           </div>
 
-          {/* Performance Insights — đo hiệu suất Designer × Orderer */}
-          {order.insights && <PerformanceInsights insights={order.insights}/>}
-
           {/* Timeline label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <span style={{
@@ -427,6 +457,24 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
 
           {/* Chat */}
           <OrderChat orderId={order.id} />
+          </>)}
+
+          {/* ── Performance tab ── */}
+          {tab === 'performance' && order.insights && (
+            <PerformanceInsights insights={order.insights} view="performance"/>
+          )}
+
+          {/* ── Activity tab ── */}
+          {tab === 'activity' && order.insights && (
+            <PerformanceInsights insights={order.insights} view="activity"/>
+          )}
+
+          {/* Empty state cho tab không có insights */}
+          {tab !== 'timeline' && !order.insights && (
+            <p style={{ fontSize: 13, color: '#AEAEB2', textAlign: 'center', padding: '40px 0', margin: 0 }}>
+              Chưa có dữ liệu hiệu suất
+            </p>
+          )}
         </div>
       </div>
     </>

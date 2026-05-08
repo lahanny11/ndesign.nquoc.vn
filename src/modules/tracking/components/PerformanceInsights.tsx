@@ -5,7 +5,11 @@ import type {
   DesignerScorecard, OrdererScorecard, TimingRow, ActivityEvent,
 } from '../types/tracking.types'
 
-interface Props { insights: Insights }
+interface Props {
+  insights: Insights
+  /** Tab view — 'performance' chỉ hiển scorecards + timing; 'activity' chỉ activity log; mặc định 'full' */
+  view?: 'full' | 'performance' | 'activity'
+}
 
 const GRADE_COLORS: Record<'A' | 'B' | 'C', { fg: string; bg: string }> = {
   A: { fg: '#16A34A', bg: 'rgba(22,163,74,0.10)' },
@@ -230,7 +234,32 @@ function ActivityLog({ events }: { events: ActivityEvent[] }) {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function PerformanceInsights({ insights }: Props) {
+export default function PerformanceInsights({ insights, view = 'full' }: Props) {
+  if (view === 'activity') {
+    return (
+      <div>
+        <SectionLabel label="Hoạt động gần đây"/>
+        <ActivityLog events={insights.activity}/>
+      </div>
+    )
+  }
+
+  if (view === 'performance') {
+    return (
+      <div>
+        <SectionLabel label="Designer × Orderer"/>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <DesignerCard d={insights.designer}/>
+          <OrdererCard  o={insights.orderer}/>
+        </div>
+
+        <SectionLabel label="Thời gian từng bước"/>
+        <TimingTable rows={insights.timing}/>
+      </div>
+    )
+  }
+
+  // full
   return (
     <div style={{ marginBottom: 20 }}>
       <SectionLabel label="Hiệu suất — Designer × Orderer"/>
