@@ -2,11 +2,13 @@
 import { supabase } from './supabase'
 
 // Hỗ trợ cả VITE_ (Vite) và NEXT_PUBLIC_ (Next.js)
+// Default empty → fetch dùng relative URL (same-origin) → MSW intercepts.
+// Khi backend N-Design thật sẵn sàng → set NEXT_PUBLIC_API_URL=https://api.ndesign.nquoc.vn
 const BASE_URL =
   (typeof import.meta !== 'undefined' &&
     (import.meta as { env?: Record<string, string> }).env?.VITE_API_URL) ||
   process.env.NEXT_PUBLIC_API_URL ||
-  'http://localhost:3000/api'
+  ''
 
 class ApiError extends Error {
   constructor(
