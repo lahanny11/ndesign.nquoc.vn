@@ -4,6 +4,48 @@ import { getCurrentMockPerson, getCurrentMockUserId, unauthorized, forbidden, no
 import { MOCK_ORDERS, MOCK_ORDERS_ALL } from '../data/orders'
 import type { Order } from '@modules/orders/types'
 
+// Map designer_id → display name (cho UI hiển thị tên người, không phải id)
+const DESIGNER_NAMES: Record<string, string> = {
+  'user-des-01': 'Lê Văn A',
+  'user-des-02': 'Trần Thị B',
+  'user-des-03': 'Phạm Văn C',
+  'user-des-04': 'Nguyễn Thị D',
+  'user-des-05': 'Hoàng E',
+}
+const ORDERER_NAMES: Record<string, string> = {
+  'user-ord-01':  'Phạm Lan Anh',  'user-ord-02': 'Trần Minh Khoa',
+  'user-ord-03':  'Nguyễn Thị Hoa','user-ord-04': 'Đỗ Phương Thảo',
+  'user-ord-05':  'Lê Hoàng Nam',  'user-ord-06': 'Vũ Thanh Tùng',
+  'user-ord-07':  'Hoàng Bảo Châu','user-ord-08': 'Trần Minh Khoa',
+  'user-ord-09':  'Lê Hoàng Nam',  'user-ord-10': 'Trần Minh Khoa',
+  'user-ord-11':  'Đỗ Phương Thảo','user-ord-12': 'Hoàng Bảo Châu',
+  'user-ord-13':  'Phạm Lan Anh',  'user-ord-14': 'Hoàng Bảo Châu',
+  'user-ord-15':  'Đỗ Phương Thảo','user-ord-16': 'Lê Hoàng Nam',
+  'user-ord-17':  'Phạm Lan Anh',  'user-ord-18': 'Trần Minh Khoa',
+  'user-ord-19':  'Vũ Thanh Tùng', 'user-ord-20': 'Nguyễn Thị Hoa',
+}
+const TEAM_NAMES: Record<string, string> = {
+  'team-admin':   'Admin Nhile',
+  'team-nedu':    'Nedu',
+  'team-edit':    'Edit',
+  'team-it':      'IT',
+  'team-ms-nhi':  'Ms Nhi',
+  'team-content': 'Content',
+  'team-nlt':     'nlt',
+}
+const PT_NAMES: Record<string, string> = {
+  'pt-quote-square': 'Social Media',
+  'pt-banner-cover': 'Banner / Cover',
+  'pt-poster-doc':   'Poster',
+  'pt-thumbnail':    'Thumbnail',
+  'pt-mailing-list': 'Email',
+  'pt-custom':       'Custom',
+}
+const designerName = (id: string) => DESIGNER_NAMES[id] ?? id
+const ordererName  = (id: string) => ORDERER_NAMES[id] ?? id
+const teamName     = (id: string) => TEAM_NAMES[id] ?? id
+const ptName       = (id: string) => PT_NAMES[id] ?? id
+
 export const orderHandlers = [
 
   // LIST (role-filtered)
@@ -183,18 +225,55 @@ export const orderHandlers = [
   }),
 
   // Legacy v1 aliases — giữ backward compat với component hooks cũ
-  http.get('*/api/v1/orders',      async ({ request }) => {
-    // redirect về handler mới bằng cách reuse logic
+  // useOrders hook expects { data: OrderCard[], meta: {...} } sau khi apiClient
+  // unwrap. apiClient unwrap 1 lần `data` → cần wrap 2 lần.
+  http.get('*/api/v1/orders', async ({ request }) => {
     const person = await getCurrentMockPerson()
     if (!person) return unauthorized()
     const url    = new URL(request.url)
-    const status = url.searchParams.get('status')
+    const statusParam = url.searchParams.get('status')
+    const hasFlag     = url.searchParams.get('has_flag') === 'true'
     const page   = Number(url.searchParams.get('page')  ?? '1')
-    const limit  = Number(url.searchParams.get('limit') ?? '20')
+    const limit  = Number(url.searchParams.get('limit') ?? '50')
     let items = MOCK_ORDERS[person.id] ?? MOCK_ORDERS_ALL
-    if (status) items = items.filter(o => o.status === status)
+
+    // Filter theo status — hỗ trợ "in_progress,assigned" comma-separated
+    if (statusParam) {
+      const statuses = statusParam.split(',').map(s => s.trim())
+      items = items.filter(o =>
+        statuses.includes(o.status) ||
+        (statuses.includes('in_progress') && o.status === 'active')
+      )
+    }
+    if (hasFlag) items = items.filter(o => o.has_red_flag || o.has_warn_flag)
+
     const paged = items.slice((page - 1) * limit, page * limit)
-    return HttpResponse.json({ data: paged, meta: { page, limit, total: items.length } })
+
+    // Map Order → OrderCard shape mà dashboard expect
+    const cards = paged.map(o => ({
+      id: o.id,
+      order_number: o.order_number,
+      task_name: o.task_name,
+      status: o.status === 'active' ? 'in_progress' : o.status,
+      deadline: o.deadline,
+      is_urgent: o.is_urgent,
+      is_overdue: o.is_overdue,
+      has_warn_flag: o.has_warn_flag,
+      has_red_flag: o.has_red_flag,
+      revision_rounds: o.revision_count,
+      progress: o.milestone_progress,
+      product_type_name: ptName(o.product_type_id),
+      product_size_name: o.product_size_label,
+      team_name: teamName(o.team_id),
+      designer_name: o.designer_id ? designerName(o.designer_id) : null,
+      orderer_name: ordererName(o.orderer_id),
+      created_at: o.created_at,
+      done_at: o.status === 'done' ? o.updated_at : null,
+    }))
+
+    return HttpResponse.json({
+      data: { data: cards, meta: { page, limit, total: items.length, has_next: items.length > page * limit, next_cursor: null } },
+    })
   }),
   http.get('*/api/v1/orders/:id',  async ({ params }) => {
     const person = await getCurrentMockPerson()
