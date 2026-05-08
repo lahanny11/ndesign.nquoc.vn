@@ -3,6 +3,7 @@ import type { OrderDetail, TimelineStep } from '../types/tracking.types'
 import OrderChat from './OrderChat'
 import DeliverySection from './DeliverySection'
 import PerformanceInsights from './PerformanceInsights'
+import VerdictBar from './VerdictBar'
 
 type TrackTab = 'timeline' | 'performance' | 'activity'
 
@@ -370,9 +371,41 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
             </div>
           )}
 
+          {/* 🪄 VERDICT BAR — 1 câu chẩn đoán đã suy luận sẵn (luôn hiện) */}
+          {order.insights && (
+            <VerdictBar
+              insights={order.insights}
+              onAction={(label) => alert(`Action: ${label}\n(Demo — wire vào backend khi sẵn sàng)`)}
+            />
+          )}
+
           {tab === 'timeline' && (<>
-          {/* Metrics — 3 col grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 20 }}>
+          {/* Compact status row — chỉ Deadline countdown */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 18 }}>
+            <div style={{
+              padding: '10px 12px', borderRadius: 10,
+              background: deadlineBg, border: `1px solid ${deadlineBorder}`,
+            }}>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: 0,
+                textTransform: 'uppercase', letterSpacing: '0.06em' }}>Deadline</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: deadlineVal,
+                margin: '2px 0 0', letterSpacing: '-0.02em' }}>{order.metrics.ontime}</p>
+            </div>
+            <div style={{
+              padding: '10px 12px', borderRadius: 10,
+              background: reviseBg, border: `1px solid ${reviseBorder}`,
+            }}>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: 0,
+                textTransform: 'uppercase', letterSpacing: '0.06em' }}>Revision</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: reviseVal,
+                margin: '2px 0 0', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                {order.metrics.rounds} vòng
+              </p>
+            </div>
+          </div>
+
+          {/* OLD 3-col metrics — kept hidden, sẽ remove sau khi confirm */}
+          <div style={{ display: 'none' }}>
             {/* Revision */}
             <div style={{
               padding: '12px 10px', borderRadius: 12, textAlign: 'center',
