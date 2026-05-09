@@ -101,28 +101,28 @@ function Step({ step, isLast }: { step: TimelineStep; isLast: boolean }) {
 
       {/* Content */}
       <div style={{ flex: 1, paddingBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2, gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: nameWeight, color: nameColor, letterSpacing: '-0.01em' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+          <span style={{ fontSize: 13, fontWeight: nameWeight, color: nameColor, letterSpacing: '-0.01em' }}>
             {step.name}
           </span>
           {step.time && (
-            <span style={{ fontSize: 10, color: timeColor, fontWeight: timeWeight, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+            <span style={{ fontSize: 11, color: timeColor, fontWeight: timeWeight, flexShrink: 0, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
               {step.time}
             </span>
           )}
         </div>
 
         {step.desc && (
-          <p style={{ fontSize: 11, color: '#6B7280', lineHeight: 1.5, margin: '0 0 8px' }}>{step.desc}</p>
+          <p style={{ fontSize: 12, color: '#6B7280', lineHeight: 1.5, margin: '0 0 10px' }}>{step.desc}</p>
         )}
 
         {step.checks.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
             {step.checks.map((c, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 6,
-                fontSize: 10, lineHeight: 1.4,
-                color: c.ok === false ? '#E11D48' : '#6B7280',
+                display: 'flex', alignItems: 'flex-start', gap: 7,
+                fontSize: 11, lineHeight: 1.45,
+                color: c.ok === false ? '#E11D48' : c.ok === true ? '#16A34A' : '#9CA3AF',
               }}>
                 <CheckIcon ok={c.ok}/>
                 <span>{c.text}</span>

@@ -292,34 +292,7 @@ export const orderHandlers = [
       diffDays <= 1            ? `Còn ${Math.max(diffDays, 0)} ngày` :
                                  `Sớm ${diffDays} ngày`
 
-    const STEP_NAMES = [
-      { id: 's1', name: 'Order đã gửi' },
-      { id: 's2', name: 'Designer nhận task' },
-      { id: 's3', name: 'Bắt đầu thực hiện' },
-      { id: 's4', name: 'Giao sản phẩm lần đầu' },
-      { id: 's5', name: 'Feedback & Chỉnh sửa' },
-      { id: 's6', name: 'Bàn giao hoàn tất' },
-    ]
-    const prog = order.milestone_progress
-    const steps = STEP_NAMES.map((s, i) => {
-      const stepIdx = i + 1
-      const isFlagged = order.has_red_flag && stepIdx === Math.min(prog, 6)
-      const state = isFlagged                        ? 'flagged'
-        : stepIdx <= Math.floor(prog * 6 / 7)        ? 'done'
-        : stepIdx === Math.ceil(prog * 6 / 7) || stepIdx === Math.min(prog, 6) ? 'active'
-        : 'pending'
-      return {
-        id: s.id, name: s.name, state, time: '',
-        desc: '',
-        checks: [] as { ok: boolean | null; text: string }[],
-      }
-    })
-
-    // ─── Performance insights — Designer × Orderer scorecards ────────────────
-    const designerName_ = order.designer_id ? designerName(order.designer_id) : null
-    const ordererName_  = ordererName(order.orderer_id)
-
-    // Mock metrics theo from designer_id (có chủ ý đa dạng để demo)
+    // ─── Performance metrics maps (used by both steps + insights) ──────────
     const DESIGNER_METRICS: Record<string, {grade:'A'|'B'|'C', resp:number, checkin:number, rev:number, ontime:number, done:number}> = {
       'user-des-01': { grade: 'A', resp: 1.5, checkin: 95, rev: 0.8, ontime: 92, done: 7 },
       'user-des-02': { grade: 'C', resp: 6.2, checkin: 65, rev: 2.3, ontime: 70, done: 5 },
@@ -330,12 +303,203 @@ export const orderHandlers = [
     const ORDERER_METRICS: Record<string, {brief:number, resp:number, rev:number, returned:number}> = {
       'user-ord-01': { brief: 88, resp: 2.0, rev: 1.2, returned: 0 },
       'user-ord-02': { brief: 72, resp: 5.5, rev: 1.6, returned: 1 },
-      'user-ord-03': { brief: 55, resp: 8.0, rev: 2.8, returned: 3 },  // Order 3 — bad orderer
+      'user-ord-03': { brief: 55, resp: 8.0, rev: 2.8, returned: 3 },
       'user-ord-04': { brief: 95, resp: 1.5, rev: 0.5, returned: 0 },
       'user-ord-05': { brief: 80, resp: 3.0, rev: 1.0, returned: 0 },
       'user-ord-06': { brief: 70, resp: 4.0, rev: 1.5, returned: 1 },
       'user-ord-07': { brief: 75, resp: 2.5, rev: 1.0, returned: 0 },
     }
+    const designerName_ = order.designer_id ? designerName(order.designer_id) : null
+    const ordererName_  = ordererName(order.orderer_id)
+
+    // ─── Rich step builder — desc, checks, time, actions ────────────────────
+    type StepState = 'done' | 'active' | 'flagged' | 'pending'
+    type Check = { ok: boolean | null; text: string }
+    interface StepData {
+      id: string; name: string; state: StepState; time: string
+      timeClass?: 'late' | 'early'; desc: string; checks: Check[]; actions?: string[]
+    }
+
+    const fmtDate = (d: Date) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`
+    const created = new Date(order.created_at)
+    const dl = new Date(order.deadline + 'T23:59:59Z')
+    const isHealthy = !order.has_red_flag && !order.has_warn_flag && order.revision_count <= 1
+    const designerLabel = designerName_ ?? '?'
+
+    const steps: StepData[] = []
+
+    // 1. Order được gửi — luôn done
+    steps.push({
+      id: 's1', name: 'Order được gửi', state: 'done',
+      time: fmtDate(created),
+      desc: `${ordererName_} gửi order.`,
+      checks: [
+        { ok: order.brief && order.brief.length >= 30, text: 'Brief đầy đủ' },
+        { ok: !order.is_urgent ? true : (dl.getTime() - created.getTime()) > 3 * 86400000, text: order.is_urgent ? 'Deadline gấp — cần ưu tiên' : `Deadline rõ: ${fmtDate(dl)}` },
+        { ok: true, text: 'Loại sản phẩm xác định' },
+      ],
+    })
+
+    // 2. Designer nhận task
+    if (order.designer_id) {
+      const assignAt = new Date(created.getTime() + 6 * 3600000)
+      const dm = DESIGNER_METRICS[order.designer_id]
+      const isCarefulDesigner = dm?.grade === 'A'
+      steps.push({
+        id: 's2', name: 'Designer nhận task',
+        state: order.milestone_progress >= 2 ? 'done' : 'active',
+        time: `${fmtDate(assignAt)} · ${order.milestone_progress >= 2 ? 'sau 6h' : 'mới nhận'}`,
+        desc: `${designerLabel} ${isCarefulDesigner ? 'nhận và kiểm tra brief kỹ.' : 'nhận task.'}`,
+        checks: [
+          { ok: isCarefulDesigner, text: isCarefulDesigner ? 'Double-check brief ✓' : 'KHÔNG double-check brief — bắt tay làm luôn' },
+          { ok: isCarefulDesigner, text: isCarefulDesigner ? 'Hỏi 1 câu về màu brand' : 'Không hỏi về style, template yêu cầu' },
+          { ok: true, text: 'Xác nhận nhận task' },
+        ],
+      })
+    } else {
+      steps.push({
+        id: 's2', name: 'Designer nhận task', state: 'active',
+        time: 'chưa assign',
+        desc: 'Đang chờ Design Leader phân công.',
+        checks: [],
+        actions: ['👤 Assign Designer ngay'],
+      })
+    }
+
+    // 3. Designer đang làm
+    if (order.milestone_progress >= 3 && order.designer_id) {
+      const startAt = new Date(created.getTime() + 24 * 3600000)
+      const isHealthy3 = order.last_checkin_at && order.revision_count === 0
+      const noCheckinDays = Math.round((NOW_MS - new Date(order.last_checkin_at ?? created).getTime()) / 86400000)
+      steps.push({
+        id: 's3', name: 'Designer đang làm',
+        state: order.milestone_progress >= 4 ? 'done' : (order.has_red_flag && order.milestone_progress === 3 ? 'flagged' : 'active'),
+        time: `${fmtDate(startAt)} – ${order.milestone_progress >= 4 ? fmtDate(new Date(created.getTime() + 86400000 * 6)) : 'đang làm'}`,
+        desc: isHealthy3
+          ? 'Tiến độ ổn định, có check-in.'
+          : (noCheckinDays > 5 ? `${noCheckinDays} ngày không check-in.` : 'Đang thực hiện.'),
+        checks: [
+          { ok: isHealthy3 ? true : noCheckinDays <= 5, text: noCheckinDays > 5 ? `Không check-in giữa chừng — ${noCheckinDays} ngày im lặng` : 'Check-in đúng hạn ✓' },
+          { ok: isHealthy3, text: isHealthy3 ? 'Gửi draft sơ bộ xác nhận hướng' : 'Không gửi draft confirm hướng' },
+          { ok: !order.is_overdue, text: order.is_overdue ? 'Không liên lạc dù gần deadline' : 'Liên lạc thường xuyên' },
+        ],
+      })
+    } else if (order.milestone_progress < 3) {
+      steps.push({
+        id: 's3', name: 'Designer đang làm', state: 'pending',
+        time: '', desc: '', checks: [],
+      })
+    }
+
+    // 4. Giao sản phẩm lần đầu
+    if (order.milestone_progress >= 4) {
+      const deliverAt = new Date(created.getTime() + (dl.getTime() - created.getTime()) * 0.5)
+      const isLate = deliverAt.getTime() > dl.getTime()
+      const daysDiff = Math.round((dl.getTime() - deliverAt.getTime()) / 86400000)
+      steps.push({
+        id: 's4', name: 'Giao sản phẩm lần đầu',
+        state: order.milestone_progress >= 5 ? 'done' : 'active',
+        time: `${fmtDate(deliverAt)} ${isLate ? `· trễ ${Math.abs(daysDiff)} ngày` : daysDiff > 0 ? `· sớm ${daysDiff} ngày` : ''}`,
+        timeClass: isLate ? 'late' : daysDiff > 2 ? 'early' : undefined,
+        desc: isHealthy
+          ? 'Giao bản hoàn thiện, đầy đủ file.'
+          : (order.has_red_flag ? 'Giao bản thảo sơ bộ, chưa hoàn thiện, thiếu file gốc.' : 'Đã giao đúng tiêu chuẩn QA.'),
+        checks: [
+          { ok: isHealthy, text: isHealthy ? 'Bản hoàn thiện' : 'Giao bản thảo sơ bộ — nhiều element chưa hoàn chỉnh' },
+          { ok: isHealthy, text: isHealthy ? 'Đủ file gốc' : 'Thiếu file source gốc (.psd/.ai)' },
+          { ok: true, text: 'Đúng kích thước yêu cầu' },
+        ],
+      })
+    } else {
+      steps.push({
+        id: 's4', name: 'Giao sản phẩm lần đầu', state: 'pending',
+        time: '', desc: '', checks: [],
+      })
+    }
+
+    // 5. Feedback & Chỉnh sửa — split thành các round nếu có
+    if (order.revision_count === 0 && order.milestone_progress >= 4) {
+      // No revision needed
+      steps.push({
+        id: 's5', name: 'Feedback & Chỉnh sửa', state: 'done',
+        time: 'Bỏ qua · 0 round',
+        desc: 'Orderer hài lòng ngay từ bản đầu.',
+        checks: [{ ok: true, text: 'Không cần revise' }],
+      })
+    } else if (order.revision_count >= 1) {
+      // Round 1
+      const r1Date = new Date(created.getTime() + (dl.getTime() - created.getTime()) * 0.6)
+      const isQuickFix = isHealthy && order.revision_count === 1
+      steps.push({
+        id: 's5a', name: isQuickFix ? 'Feedback & Chỉnh sửa' : 'Feedback Round 1',
+        state: 'done',
+        time: `${fmtDate(r1Date)}${isQuickFix ? ' · 1 round' : ''}`,
+        desc: isQuickFix ? 'Chỉnh đúng tất cả điểm ngay lần đầu.' : `${ordererName_} gửi feedback chi tiết.`,
+        checks: isQuickFix
+          ? [{ ok: true, text: 'Chỉnh đúng tất cả điểm ngay lần đầu' }]
+          : [
+              { ok: false, text: 'Designer không double-check, chỉnh sai 3/8 điểm' },
+              { ok: false, text: 'Không confirm với orderer trước khi chỉnh' },
+            ],
+      })
+
+      if (order.revision_count >= 2) {
+        const r2Date = new Date(r1Date.getTime() + 1.5 * 86400000)
+        steps.push({
+          id: 's5b', name: 'Chỉnh sửa Round 2',
+          state: order.revision_count >= 3 ? 'done' : 'active',
+          time: fmtDate(r2Date),
+          desc: 'Vẫn sai các điểm từ round 1.',
+          checks: [
+            { ok: false, text: '3 điểm từ round 1 vẫn sai' },
+            { ok: false, text: 'Thêm 2 lỗi mới do không kiểm tra kỹ' },
+          ],
+        })
+      }
+
+      if (order.revision_count >= 3) {
+        const r3Date = new Date(NOW_MS - 86400000)
+        steps.push({
+          id: 's5c', name: 'Chỉnh sửa Round 3',
+          state: order.status === 'done' ? 'done' : 'active',
+          time: order.status === 'done' ? fmtDate(r3Date) : `${fmtDate(r3Date)} · đang thực hiện`,
+          desc: 'Round 3 — cần leader theo dõi sát.',
+          checks: [
+            { ok: null, text: 'Confirm từng điểm với orderer trước khi giao' },
+            { ok: null, text: 'Leader review trước khi gửi' },
+          ],
+          actions: order.status === 'done' ? undefined : ['Đã chỉnh xong Round 3', '🚨 Báo Leader can thiệp'],
+        })
+      }
+    } else {
+      steps.push({
+        id: 's5', name: 'Feedback & Chỉnh sửa', state: 'pending',
+        time: '', desc: '', checks: [],
+      })
+    }
+
+    // 6. Hoàn thành & Bàn giao
+    if (order.status === 'done') {
+      const doneDate = new Date(order.updated_at)
+      const earlyDays = Math.round((dl.getTime() - doneDate.getTime()) / 86400000)
+      steps.push({
+        id: 's6', name: 'Hoàn thành & Bàn giao', state: 'done',
+        time: `${fmtDate(doneDate)} ✓`,
+        timeClass: earlyDays > 0 ? 'early' : undefined,
+        desc: earlyDays > 0 ? `Done trước deadline ${earlyDays} ngày.` : 'Done đúng deadline.',
+        checks: [
+          { ok: true, text: 'Orderer xác nhận hài lòng' },
+          { ok: true, text: 'Đủ tất cả file bàn giao' },
+        ],
+      })
+    } else {
+      steps.push({
+        id: 's6', name: 'Hoàn thành & Bàn giao', state: 'pending',
+        time: '', desc: '', checks: [],
+      })
+    }
+
+    // ─── Performance insights — dùng lại DESIGNER_METRICS / ORDERER_METRICS đã declare ────
     const dm = DESIGNER_METRICS[order.designer_id ?? ''] ?? { grade: 'B' as const, resp: 3, checkin: 80, rev: 1.2, ontime: 85, done: 3 }
     const om = ORDERER_METRICS[order.orderer_id] ?? { brief: 75, resp: 3, rev: 1.2, returned: 0 }
 
