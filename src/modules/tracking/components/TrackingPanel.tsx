@@ -13,6 +13,19 @@ interface Props {
   onClose: () => void
 }
 
+// Section label — uppercase letterspaced (đồng bộ với pattern toàn dashboard)
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+      <span style={{
+        fontSize: 10, fontWeight: 700, color: '#AEAEB2',
+        textTransform: 'uppercase', letterSpacing: '0.08em',
+      }}>{label}</span>
+      <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }}/>
+    </div>
+  )
+}
+
 function CheckIcon({ ok }: { ok: boolean | null }) {
   if (ok === true) return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
@@ -380,100 +393,79 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
           )}
 
           {tab === 'timeline' && (<>
-          {/* Compact status row — chỉ Deadline countdown */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 18 }}>
+
+          {/* ─── CHỈ SỐ TRACKING — 3 small stat cards ─── */}
+          <SectionLabel label="Chỉ số tracking"/>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 }}>
             <div style={{
-              padding: '10px 12px', borderRadius: 10,
-              background: deadlineBg, border: `1px solid ${deadlineBorder}`,
-            }}>
-              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: 0,
-                textTransform: 'uppercase', letterSpacing: '0.06em' }}>Deadline</p>
-              <p style={{ fontSize: 14, fontWeight: 700, color: deadlineVal,
-                margin: '2px 0 0', letterSpacing: '-0.02em' }}>{order.metrics.ontime}</p>
-            </div>
-            <div style={{
-              padding: '10px 12px', borderRadius: 10,
+              padding: '12px 10px', borderRadius: 12, textAlign: 'center',
               background: reviseBg, border: `1px solid ${reviseBorder}`,
             }}>
-              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: 0,
-                textTransform: 'uppercase', letterSpacing: '0.06em' }}>Revision</p>
-              <p style={{ fontSize: 14, fontWeight: 700, color: reviseVal,
-                margin: '2px 0 0', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
-                {order.metrics.rounds} vòng
+              <p style={{ fontSize: 22, fontWeight: 700, color: reviseVal, margin: 0,
+                lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>
+                {order.metrics.rounds}
+              </p>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: '6px 0 0',
+                textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Revision rounds
               </p>
             </div>
-          </div>
-
-          {/* OLD 3-col metrics — kept hidden, sẽ remove sau khi confirm */}
-          <div style={{ display: 'none' }}>
-            {/* Revision */}
-            <div style={{
-              padding: '12px 10px', borderRadius: 12, textAlign: 'center',
-              background: reviseBg, border: `1px solid ${reviseBorder}`,
-            }}>
-              <div style={{
-                fontSize: 22, fontWeight: 700, color: reviseVal, lineHeight: 1,
-                letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',
-              }}>
-                {order.metrics.rounds}
-              </div>
-              <div style={{
-                fontSize: 9, fontWeight: 600, color: '#AEAEB2', marginTop: 4,
-                textTransform: 'uppercase', letterSpacing: '0.07em',
-              }}>
-                Revision
-              </div>
-            </div>
-
-            {/* Deadline */}
             <div style={{
               padding: '12px 10px', borderRadius: 12, textAlign: 'center',
               background: deadlineBg, border: `1px solid ${deadlineBorder}`,
             }}>
-              <div style={{
-                fontSize: 13, fontWeight: 700, color: deadlineVal, lineHeight: 1.2,
-                letterSpacing: '-0.02em',
-              }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: deadlineVal, margin: 0,
+                lineHeight: 1.2, letterSpacing: '-0.02em' }}>
                 {order.metrics.ontime}
-              </div>
-              <div style={{
-                fontSize: 9, fontWeight: 600, color: '#AEAEB2', marginTop: 4,
-                textTransform: 'uppercase', letterSpacing: '0.07em',
-              }}>
-                Deadline
-              </div>
+              </p>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: '6px 0 0',
+                textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Tiến độ
+              </p>
             </div>
-
-            {/* Comms */}
             <div style={{
               padding: '12px 10px', borderRadius: 12, textAlign: 'center',
               background: 'rgba(0,0,0,0.03)', border: '1px solid rgba(0,0,0,0.07)',
             }}>
-              <div style={{
-                fontSize: 22, fontWeight: 700, color: '#1D1D1F', lineHeight: 1,
-                letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums',
-              }}>
+              <p style={{ fontSize: 22, fontWeight: 700, color: '#1D1D1F', margin: 0,
+                lineHeight: 1, letterSpacing: '-0.03em', fontVariantNumeric: 'tabular-nums' }}>
                 {order.metrics.comms}
-              </div>
-              <div style={{
-                fontSize: 9, fontWeight: 600, color: '#AEAEB2', marginTop: 4,
-                textTransform: 'uppercase', letterSpacing: '0.07em',
-              }}>
-                Comms
-              </div>
+              </p>
+              <p style={{ fontSize: 9, fontWeight: 700, color: '#AEAEB2', margin: '6px 0 0',
+                textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                Giao tiếp
+              </p>
             </div>
           </div>
 
-          {/* Timeline label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <span style={{
-              fontSize: 10, fontWeight: 600, color: '#AEAEB2',
-              textTransform: 'uppercase', letterSpacing: '0.08em',
+          {/* ─── Brief Double-Check callout — chỉ hiện khi đạt ─── */}
+          {order.metrics.briefCheck && (
+            <div style={{
+              padding: '12px 14px', borderRadius: 12, marginBottom: 18,
+              background: 'rgba(22,163,74,0.06)', border: '1px solid rgba(22,163,74,0.22)',
+              display: 'flex', alignItems: 'center', gap: 10,
             }}>
-              Timeline
-            </span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(0,0,0,0.07)' }}/>
-          </div>
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%', background: '#16A34A',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
+                  <polyline points="20 6 9 17 4 12" stroke="white" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#16A34A', margin: 0 }}>
+                  Brief Double-Check: Đã thực hiện ✓
+                </p>
+                <p style={{ fontSize: 11, color: '#6B7280', margin: '2px 0 0', lineHeight: 1.4 }}>
+                  Designer đã xác nhận hiểu brief trước khi làm.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ─── TIMELINE TIẾN ĐỘ ─── */}
+          <SectionLabel label="Timeline tiến độ"/>
 
           {/* Timeline steps */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
