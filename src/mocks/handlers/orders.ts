@@ -334,8 +334,8 @@ export const orderHandlers = [
       time: fmtDate(created),
       desc: `${ordererName_} gửi order.`,
       checks: [
-        { ok: order.brief && order.brief.length >= 30, text: 'Brief đầy đủ' },
-        { ok: !order.is_urgent ? true : (dl.getTime() - created.getTime()) > 3 * 86400000, text: order.is_urgent ? 'Deadline gấp — cần ưu tiên' : `Deadline rõ: ${fmtDate(dl)}` },
+        { ok: !!(order.brief && order.brief.length >= 30), text: 'Brief đầy đủ' },
+        { ok: !order.is_urgent || (dl.getTime() - created.getTime()) > 3 * 86400000, text: order.is_urgent ? 'Deadline gấp — cần ưu tiên' : `Deadline rõ: ${fmtDate(dl)}` },
         { ok: true, text: 'Loại sản phẩm xác định' },
       ],
     })
@@ -369,7 +369,7 @@ export const orderHandlers = [
     // 3. Designer đang làm
     if (order.milestone_progress >= 3 && order.designer_id) {
       const startAt = new Date(created.getTime() + 24 * 3600000)
-      const isHealthy3 = order.last_checkin_at && order.revision_count === 0
+      const isHealthy3: boolean = !!order.last_checkin_at && order.revision_count === 0
       const noCheckinDays = Math.round((NOW_MS - new Date(order.last_checkin_at ?? created).getTime()) / 86400000)
       steps.push({
         id: 's3', name: 'Designer đang làm',

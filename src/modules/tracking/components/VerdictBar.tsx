@@ -41,7 +41,6 @@ function diagnose(insights: PerformanceInsights): Diagnosis {
   // Tính fault score (0-100, càng cao càng tệ)
   const briefDelta    = TEAM_AVG.brief_quality - orderer.brief_quality_score   // dương = tệ hơn team
   const ordererRespD  = orderer.response_avg_hours - TEAM_AVG.response_hours
-  const ordererRevD   = orderer.revision_avg - TEAM_AVG.revision
   const ordererBad =
     briefDelta > 15 ||
     orderer.brief_returned >= 2 ||

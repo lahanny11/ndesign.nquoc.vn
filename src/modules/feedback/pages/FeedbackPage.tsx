@@ -5,7 +5,7 @@ import AppLayout from '@/shared/layouts/AppLayout'
 import {
   FEEDBACKS, CATEGORY_META, STATUS_META,
   avatarColor, timeAgo, daysOpen,
-  type FeedbackItem, type FeedbackCategory, type FeedbackStatus,
+  type FeedbackItem, type FeedbackCategory,
 } from '../data/feedback.data'
 
 type FilterTab = 'all' | 'open' | 'resolved' | 'mine'
