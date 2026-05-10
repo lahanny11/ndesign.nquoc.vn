@@ -55,6 +55,27 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
+      {/* AI parse hint — Magic moment teaser */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 10,
+        padding: '10px 12px', borderRadius: 10,
+        background: 'linear-gradient(135deg, rgba(108,107,174,0.06), rgba(124,58,237,0.04))',
+        border: '1px solid rgba(108,107,174,0.18)',
+      }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: 7,
+          background: 'linear-gradient(135deg,#6C6BAE,#7C3AED)',
+          color: '#fff', fontSize: 13,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>✦</div>
+        <p style={{ fontSize: 12, color: '#3A3A3C', margin: 0, lineHeight: 1.45 }}>
+          <b style={{ color: '#1D1D1F' }}>AI sẽ tự động cấu trúc brief</b> thành các phần
+          <span style={{ color: '#6E6E73' }}> (Mục đích · Đối tượng · Phong cách · Nội dung)</span> để
+          Designer đọc nhanh hơn.
+        </p>
+      </div>
+
       {/* Brief textarea */}
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -73,9 +94,9 @@ export default function Step3Brief({ data, onChange, draftOrderId }: Props) {
           onChange={e => onChange({ brief_text: e.target.value })}
           onFocus={() => setBriefFocused(true)}
           onBlur={() => setBriefFocused(false)}
-          placeholder="Mô tả mục đích, đối tượng mục tiêu, phong cách, nội dung cần có...&#10;Càng chi tiết, designer hiểu đúng ngay từ đầu."
+          placeholder="Mô tả tự do — AI sẽ tự cấu trúc cho Designer.&#10;&#10;Gợi ý format giúp AI parse tốt hơn:&#10;1. Mục đích: ...&#10;2. Đối tượng: ...&#10;3. Phong cách: ...&#10;4. Nội dung: ..."
           maxLength={2000}
-          rows={5}
+          rows={6}
           style={{
             ...inputBase,
             resize: 'none',

@@ -7,6 +7,7 @@ import Step4Confirm from './Step4Confirm'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../../../shared/config/api-client'
 import { useCurrentUser } from '../../../shared/hooks/useCurrentUser'
+import { parseBriefAI } from '../utils/parseBriefAI'
 
 interface Props { open: boolean; onClose: () => void }
 
@@ -52,17 +53,31 @@ export default function OrderFormModal({ open, onClose }: Props) {
     if (user) setForm(f => ({ ...f, step1: { ...f.step1, orderer_name: user.full_name, team_id: user.team_slug ?? '' } }))
   }, [user])
 
+  const [aiParsing, setAiParsing] = useState(false)
   const submitMutation = useMutation({
-    mutationFn: () => apiClient.post<{ order_number: string }>('/api/v1/orders', {
-      ...form.step1, ...form.step2, ...form.step3, draft_order_id: form.draft_order_id,
-    }),
+    mutationFn: async () => {
+      // ─── Step 1: AI parse brief — 1.2s mock (production: Claude API) ────
+      setAiParsing(true)
+      const briefStructured = await parseBriefAI(form.step3.brief_text)
+      setAiParsing(false)
+
+      // ─── Step 2: POST order với both raw + structured ────
+      return apiClient.post<{ order_number: string }>('/api/v1/orders', {
+        ...form.step1, ...form.step2, ...form.step3,
+        brief_structured: briefStructured,  // backend lưu cả 2
+        draft_order_id: form.draft_order_id,
+      })
+    },
     onSuccess: (res) => {
       setOrderNumber(res.order_number)
       setSubmitted(true)
       qc.invalidateQueries({ queryKey: ['orders'] })
       qc.invalidateQueries({ queryKey: ['dashboard-stats'] })
     },
-    onError: (err: { message?: string }) => setError(err?.message ?? 'Có lỗi xảy ra.'),
+    onError: (err: { message?: string }) => {
+      setAiParsing(false)
+      setError(err?.message ?? 'Có lỗi xảy ra.')
+    },
   })
 
   const upd1 = (d: Partial<OrderFormStep1>) => setForm(f => ({ ...f, step1: { ...f.step1, ...d } }))
@@ -439,7 +454,7 @@ export default function OrderFormModal({ open, onClose }: Props) {
                       borderTopColor: '#fff', borderRadius: '50%',
                       animation: 'spin 0.6s linear infinite',
                     }}/>
-                    Đang gửi...
+                    {aiParsing ? '✦ AI đang phân tích brief...' : 'Đang gửi...'}
                   </>
                 ) : step === 3 ? '✓ Gửi order' : 'Tiếp theo →'}
               </button>
