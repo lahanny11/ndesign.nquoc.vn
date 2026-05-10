@@ -21,7 +21,7 @@ const STEPS = [
 const EMPTY: OrderFormData = {
   draft_order_id: crypto.randomUUID(),
   step1: { orderer_name: '', team_id: '', task_name: '', deadline: '', is_urgent: false },
-  step2: { product_type_id: '', product_type_name: '', product_size_name: '' },
+  step2: { product_type_id: '', product_type_name: '', product_size_name: '', quantity: 1 },
   step3: { brief_text: '', style_reference: '', primary_colors: [], media_cloudflare_uids: [], moodboard_id: null, style_description: '' },
 }
 

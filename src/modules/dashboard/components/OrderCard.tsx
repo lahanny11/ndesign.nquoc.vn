@@ -197,12 +197,21 @@ export default function OrderCard({ order, onTrack, index, onSelfAssign, selfAss
 
       {/* Body */}
       <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>
-        {/* Team + size */}
+        {/* Team + size + quantity */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 10, fontWeight: 600, color: '#AEAEB2', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             {order.team_name}
           </span>
-          <span style={{ fontSize: 10, color: '#AEAEB2' }}>{order.product_size_name}</span>
+          <span style={{ fontSize: 10, color: '#AEAEB2', display: 'flex', alignItems: 'center', gap: 5 }}>
+            {order.product_size_name}
+            {(order.quantity ?? 1) > 1 && (
+              <span style={{
+                fontSize: 9, fontWeight: 700, color: '#D97706',
+                padding: '1px 5px', borderRadius: 4,
+                background: 'rgba(217,119,6,0.12)', letterSpacing: '0.02em',
+              }}>×{order.quantity}</span>
+            )}
+          </span>
         </div>
 
         {/* Task name */}

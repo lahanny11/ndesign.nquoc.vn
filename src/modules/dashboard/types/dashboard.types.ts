@@ -19,6 +19,7 @@ export interface OrderCard {
   designer_avatar: string | null
   product_type_name: string
   product_size_name: string
+  quantity?: number       // số lượng sản phẩm; default 1
   created_at: string
   done_at: string | null
   progress: number        // 1-7

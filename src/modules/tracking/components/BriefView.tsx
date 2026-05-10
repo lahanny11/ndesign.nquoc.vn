@@ -7,6 +7,7 @@ interface Props {
   brief: BriefStructured
   productType?: string
   productSize?: string
+  quantity?: number
   ordererName?: string
 }
 
@@ -175,7 +176,7 @@ function AttachmentList({ items }: { items: BriefAttachment[] }) {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-export default function BriefView({ brief, productType, productSize, ordererName }: Props) {
+export default function BriefView({ brief, productType, productSize, quantity, ordererName }: Props) {
   const hasStructured = brief.purpose || brief.audience || brief.style || brief.slides?.length
 
   return (
@@ -207,6 +208,13 @@ export default function BriefView({ brief, productType, productSize, ordererName
             {(productType || productSize) && (
               <p style={{ fontSize: 11, color: '#6E6E73', margin: '2px 0 0' }}>
                 {productType}{productSize && <span style={{ marginLeft: 6, fontFamily: 'monospace', color: '#1D1D1F', fontWeight: 600 }}>{productSize}</span>}
+                {quantity && quantity > 1 && (
+                  <span style={{
+                    marginLeft: 8, fontWeight: 700, color: '#D97706',
+                    padding: '1px 7px', borderRadius: 5,
+                    background: 'rgba(217,119,6,0.12)', fontSize: 10, letterSpacing: '0.02em',
+                  }}>× {quantity} sản phẩm</span>
+                )}
               </p>
             )}
           </div>

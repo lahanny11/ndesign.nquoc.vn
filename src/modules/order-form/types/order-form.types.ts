@@ -10,6 +10,7 @@ export interface OrderFormStep2 {
   product_type_id: string
   product_type_name: string
   product_size_name: string
+  quantity: number              // số lượng sản phẩm (default 1, max 20)
 }
 
 export interface OrderFormStep3 {

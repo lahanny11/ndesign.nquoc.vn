@@ -471,6 +471,7 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
               brief={order.brief}
               productType={order.type}
               productSize={order.product_size}
+              quantity={order.quantity}
               ordererName={order.orderer_name}
             />
           )}

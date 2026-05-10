@@ -143,6 +143,7 @@ export const MOCK_ORDERS_ALL: Order[] = [
     team_id: 'team-nlt', designer_id: 'user-des-02',
     product_type_id: 'pt-quote-square',
     product_size_label: 'Instagram Feed (1200×1200 px)',
+    quantity: 5,                      // 5 slide carousel
     brief: '5 slides carousel về tips quản lý thời gian. Mỗi slide 1 tip, thiết kế đồng bộ, màu sắc NhiLe. Text ngắn gọn, icon minh hoạ.',
     style_description: 'Clean, educational, NhiLe brand',
     color_palette: ['#6C6BAE', '#F59E0B', '#FFFFFF'],
@@ -219,6 +220,7 @@ export const MOCK_ORDERS_ALL: Order[] = [
     team_id: 'team-content', designer_id: 'user-des-01',
     product_type_id: 'pt-quote-square',
     product_size_label: 'Instagram Feed (1200×1200 px)',
+    quantity: 30,                     // 30 ảnh daily motivation
     brief: '30 ảnh quote daily motivation, mỗi ngày 1 tấm. Quote ngắn, typography đẹp, background gradient pastel.',
     style_description: 'Minimal, inspirational, soft palette',
     color_palette: ['#FCA5A5', '#A78BFA', '#FBBF24'],
@@ -275,6 +277,7 @@ export const MOCK_ORDERS_ALL: Order[] = [
     team_id: 'team-nlt', designer_id: 'user-des-01',
     product_type_id: 'pt-thumbnail',
     product_size_label: 'YouTube Thumbnail (1280×720 px)',
+    quantity: 4,                      // 4 thumbnail tập 22-25
     brief: '4 thumbnails cho podcast Founder\'s Talk tập 22-25. Layout đồng nhất, mỗi tập đổi guest + topic title.',
     style_description: 'Podcast brand consistent',
     color_palette: ['#1D1D1F', '#F59E0B', '#FFFFFF'],
@@ -371,6 +374,7 @@ export const MOCK_ORDERS_ALL: Order[] = [
     team_id: 'team-edit', designer_id: 'user-des-02',
     product_type_id: 'pt-quote-square',
     product_size_label: 'Instagram Feed (1200×1200 px)',
+    quantity: 5,                      // 5 ảnh giảng viên
     brief: '5 ảnh giảng viên workshop tháng 5. Layout đồng nhất, kèm tên + chức vụ + ngày workshop.',
     style_description: 'Speaker introduction series',
     color_palette: ['#7C3AED', '#FFFFFF', '#1D1D1F'],

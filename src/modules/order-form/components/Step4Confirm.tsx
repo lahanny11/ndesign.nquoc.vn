@@ -100,6 +100,11 @@ export default function Step4Confirm({ data, teamName }: Props) {
       <Section title="Loại sản phẩm">
         <Row label="Nhóm" value={step2.product_type_name || '—'} />
         <Row label="Kích thước" value={step2.product_size_name || '—'} />
+        <Row label="Số lượng" value={
+          step2.quantity > 1
+            ? <span style={{ fontWeight: 700, color: '#D97706' }}>{step2.quantity} sản phẩm</span>
+            : <span style={{ color: '#6E6E73' }}>1 sản phẩm</span>
+        } />
       </Section>
 
       <Section title="Brief & Phong cách">

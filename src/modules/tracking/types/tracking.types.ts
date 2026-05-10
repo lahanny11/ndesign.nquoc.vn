@@ -111,5 +111,6 @@ export interface OrderDetail {
   insights?: PerformanceInsights   // chi tiết hiệu suất
   brief?: BriefStructured           // brief đã parse structured
   product_size?: string             // VD: "1080×1080 px"
+  quantity?: number                 // số lượng sản phẩm
   orderer_name?: string             // hiển thị trong brief header
 }

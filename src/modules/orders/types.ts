@@ -13,6 +13,7 @@ export interface Order {
   designer_id?: string
   product_type_id: string
   product_size_label: string
+  quantity?: number              // số lượng sản phẩm (default 1)
   brief: string
   style_description: string
   color_palette: string[]
