@@ -452,7 +452,7 @@ export default function Step2ProductType({ data, onChange, productTypes }: Props
       {/* Quantity counter — chỉ hiện sau khi chọn size */}
       {data.product_type_id && data.product_size_name && (
         <QuantityCounter
-          value={data.quantity}
+          value={data.quantity ?? 1}
           onChange={(q) => onChange({ quantity: q })}
           productSlug={selected?.slug}
         />
@@ -483,6 +483,9 @@ function QuantityCounter({ value, onChange, productSlug }: {
 }) {
   const MAX = 20
 
+  // Safe value — nếu undefined/NaN thì fallback 1 (tránh "Received NaN" warning)
+  const safeValue = Number.isFinite(value) && value > 0 ? Math.floor(value) : 1
+
   // SLA base hours per product type (from SOP) × quantity
   const slaBase: Record<string, { unit: number; label: string }> = {
     'quote-square': { unit: 1,   label: 'ngày/sản phẩm' },
@@ -493,11 +496,11 @@ function QuantityCounter({ value, onChange, productSlug }: {
     'custom':       { unit: 2,   label: 'ngày/sản phẩm' },
   }
   const sla = slaBase[productSlug ?? ''] ?? { unit: 1, label: 'ngày/sản phẩm' }
-  const totalDays = Math.ceil(sla.unit * value)
-  const isHeavy = value > 5
+  const totalDays = Math.max(1, Math.ceil(sla.unit * safeValue))
+  const isHeavy = safeValue > 5
 
-  const dec = () => onChange(Math.max(1, value - 1))
-  const inc = () => onChange(Math.min(MAX, value + 1))
+  const dec = () => onChange(Math.max(1, safeValue - 1))
+  const inc = () => onChange(Math.min(MAX, safeValue + 1))
 
   return (
     <div>
@@ -518,10 +521,10 @@ function QuantityCounter({ value, onChange, productSlug }: {
           <button
             type="button"
             onClick={dec}
-            disabled={value <= 1}
+            disabled={safeValue <= 1}
             style={{
-              width: 36, height: 36, border: 'none', cursor: value <= 1 ? 'not-allowed' : 'pointer',
-              background: 'transparent', color: value <= 1 ? '#C7C7CC' : '#1D1D1F',
+              width: 36, height: 36, border: 'none', cursor: safeValue <= 1 ? 'not-allowed' : 'pointer',
+              background: 'transparent', color: safeValue <= 1 ? '#C7C7CC' : '#1D1D1F',
               fontSize: 18, fontWeight: 600, fontFamily: 'inherit',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -530,14 +533,14 @@ function QuantityCounter({ value, onChange, productSlug }: {
             width: 44, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 16, fontWeight: 700, color: '#1D1D1F',
             fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.02em',
-          }}>{value}</div>
+          }}>{safeValue}</div>
           <button
             type="button"
             onClick={inc}
-            disabled={value >= MAX}
+            disabled={safeValue >= MAX}
             style={{
-              width: 36, height: 36, border: 'none', cursor: value >= MAX ? 'not-allowed' : 'pointer',
-              background: 'transparent', color: value >= MAX ? '#C7C7CC' : '#1D1D1F',
+              width: 36, height: 36, border: 'none', cursor: safeValue >= MAX ? 'not-allowed' : 'pointer',
+              background: 'transparent', color: safeValue >= MAX ? '#C7C7CC' : '#1D1D1F',
               fontSize: 18, fontWeight: 600, fontFamily: 'inherit',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -553,7 +556,7 @@ function QuantityCounter({ value, onChange, productSlug }: {
             SLA: {totalDays} ngày làm việc
           </p>
           <p style={{ fontSize: 10, color: '#AEAEB2', margin: '2px 0 0' }}>
-            {value} × {sla.unit} {sla.label}
+            {safeValue} × {sla.unit} {sla.label}
           </p>
         </div>
 
@@ -568,8 +571,8 @@ function QuantityCounter({ value, onChange, productSlug }: {
                 width: 28, height: 22, border: 'none', cursor: 'pointer',
                 borderRadius: 6, fontSize: 11, fontWeight: 600,
                 fontFamily: 'inherit', fontVariantNumeric: 'tabular-nums',
-                background: value === n ? '#1D1D1F' : 'rgba(0,0,0,0.05)',
-                color: value === n ? '#fff' : '#6E6E73',
+                background: safeValue === n ? '#1D1D1F' : 'rgba(0,0,0,0.05)',
+                color: safeValue === n ? '#fff' : '#6E6E73',
               }}
             >{n}</button>
           ))}
