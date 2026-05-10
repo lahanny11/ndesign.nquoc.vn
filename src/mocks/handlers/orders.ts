@@ -46,6 +46,85 @@ const ordererName  = (id: string) => ORDERER_NAMES[id] ?? id
 const teamName     = (id: string) => TEAM_NAMES[id] ?? id
 const ptName       = (id: string) => PT_NAMES[id] ?? id
 
+// ─── Build structured brief — demo nội dung phong phú theo từng order ─────
+interface MockBriefSlide { n: number; title: string; quote?: string; caption?: string; timing?: string; note?: string }
+interface MockBrief {
+  purpose?: string; audience?: string; style?: string
+  slides?: MockBriefSlide[]
+  extras?: { label: string; value: string }[]
+  attachments?: { name: string; type: 'pdf' | 'doc' | 'image' | 'link'; url?: string }[]
+  raw_text?: string
+}
+
+function buildStructuredBrief(order: { id: string; brief?: string; product_type_id: string; task_name: string; color_palette: string[] }): MockBrief {
+  // Order 7 — Carousel Instagram (giống screenshot user gửi: Peaceful Soul style)
+  if (order.id === 'ord-0007-uuid-ghij-7890-123456789012') {
+    return {
+      purpose: 'Carousel quảng bá tập "Peaceful Soul #11 — Why Vietnam Endured: The Resilience of a Purely Agrarian Society" đăng trên fanpage Ms Nhi, dẫn người xem về full episode YouTube @MsNhi. Đồng thời góp phần xây Pillar 2 (Văn hoá & Nghệ nhân Việt Nam) trong content strategy của brand.',
+      audience: 'Người trẻ 18–35 tuổi, quan tâm tư duy lãnh đạo bản thân, văn hoá Việt, lối sống bền vững.',
+      style: 'Tinh thần tổng: Ấm — tài liệu — bảo tàng. Cảm giác như đang lật album ảnh cũ, không phải lướt một bài quảng cáo. Ít mà chất — sức nặng nằm ở câu chữ và ánh nhìn ảnh nền, không phải hiệu ứng.',
+      slides: [
+        { n: 1, title: 'COVER — Tổng quan',
+          quote: '5 THINGS THAT HAVE ALLOWED VIETNAM TO SURVIVE FOR 5000 YEARS',
+          note: 'Số 5000 tô đỏ đậm hơn các phần còn lại; hình ảnh đại diện cho tinh thần Việt.',
+          timing: '[00:38] - [01:00]' },
+        { n: 2, title: 'INSIGHT #01 — Hai dòng chảy',
+          quote: 'The universe flows on two primordial energy currents: the spirit of Agriculture and the spirit of Industry. These two currents shape all civilizations on Earth.',
+          timing: '[01:31] - [02:15]' },
+        { n: 3, title: 'INSIGHT #02 — Đối nhịp downbeat',
+          quote: 'Ancient China. Mesopotamia. Egypt. All were once purely agricultural civilizations — then conquered, assimilated, or wiped out. Their power did not save them.',
+          caption: 'Peaceful Soul #11' },
+        { n: 4, title: 'TWIST — Slide sáng nhất (peak)',
+          quote: 'After 5000 years, we still speak Vietnamese. We still eat rice. We still cultivate rice. We still preserve our village communal houses. This is not luck. This is a hidden strength that we ourselves sometimes forget we possess.',
+          timing: '[08:00] - [08:15]' },
+        { n: 5, title: 'CTA — Đóng',
+          quote: 'After 5000 years, the world is returning to "Green". Eat green. Live green. Learn green. This isn\'t a new trend — it\'s the spirit of Shen Nong, the ancestral spirit of the Vietnamese people.',
+          caption: 'Bấm vào link bio để xem full episode trên YouTube @MsNhi.' },
+      ],
+      attachments: [
+        { name: 'Peaceful_Soul_11_Script.pdf', type: 'pdf' },
+        { name: 'Reference_Brand_Tone.pdf', type: 'pdf' },
+        { name: 'Logo_NhiLe_PNG_AI.zip', type: 'doc' },
+      ],
+    }
+  }
+
+  // Order 1 — Banner Xuân (đơn giản hơn)
+  if (order.id === 'ord-0001-uuid-abcd-ef12-345678901234') {
+    return {
+      purpose: 'Banner chiến dịch Xuân 2026 NhiLe Holdings — đăng feed Instagram tài khoản chính. Mục đích: chúc mừng năm mới + củng cố brand identity dịp Tết.',
+      audience: 'Cộng đồng follower NhiLe Holdings — đa dạng tuổi 22–45, quan tâm phát triển bản thân.',
+      style: 'Hiện đại, truyền thống pha hiện đại. Màu đỏ chủ đạo (#E11D48) + vàng nhấn (#D97706). Logo nổi bật, thông điệp "Chúc Mừng Năm Mới 2026" rõ ràng.',
+      extras: [
+        { label: 'CTA chính', value: 'Theo dõi @nhile.holdings để xem hành trình 2026.' },
+        { label: 'Hashtag', value: '#NhileHoldings #Xuan2026 #ChucMungNamMoi' },
+      ],
+      attachments: [
+        { name: 'Brand_Guideline_Q1.pdf', type: 'pdf' },
+        { name: 'Logo_NhiLe_Vector.ai', type: 'doc' },
+      ],
+    }
+  }
+
+  // Order 3 — Infographic Q1 (red flag — brief tệ → minh hoạ)
+  if (order.id === 'ord-0003-uuid-cdef-3456-789012345678') {
+    return {
+      purpose: 'Infographic tóm tắt kết quả tài chính Q1 NhiLe Holdings.',
+      audience: 'Cổ đông và đối tác.',
+      style: 'Chuyên nghiệp, corporate.',
+      extras: [
+        { label: '⚠ Designer note', value: 'Brief thiếu: chưa nói rõ infographic chữ-nhiều hay charts-nhiều. Đối tượng "cổ đông và đối tác" quá chung. Style "corporate" không có ví dụ cụ thể.' },
+      ],
+      attachments: [
+        { name: 'Q1_Financial_Data_Raw.xlsx', type: 'doc' },
+      ],
+    }
+  }
+
+  // Default: raw text fallback từ brief gốc
+  return { raw_text: order.brief ?? 'Chưa có brief chi tiết.' }
+}
+
 export const orderHandlers = [
 
   // LIST (role-filtered)
@@ -568,15 +647,21 @@ export const orderHandlers = [
       activity: events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 8),
     }
 
+    // ─── Build structured brief — sample for some orders ────────────────────
+    const sampleBrief = buildStructuredBrief(order)
+
     const detail = {
       id: order.id,
       title: order.task_name,
       type: ptName(order.product_type_id),
       team: teamName(order.team_id),
       designer: designerName_,
+      orderer_name: ordererName_,
+      product_size: order.product_size_label,
       deadline: order.deadline,
       status: order.status === 'active' ? 'in_progress' : order.status,
       flag: (order.has_red_flag ? 'red' : order.has_warn_flag ? 'warn' : null) as 'red' | 'warn' | null,
+      brief: sampleBrief,
       metrics: {
         rounds: order.revision_count,
         ontime,

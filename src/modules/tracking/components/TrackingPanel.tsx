@@ -4,6 +4,7 @@ import OrderChat from './OrderChat'
 import DeliverySection from './DeliverySection'
 import PerformanceInsights from './PerformanceInsights'
 import VerdictBar from './VerdictBar'
+import BriefView from './BriefView'
 
 type TrackTab = 'timeline' | 'performance' | 'activity'
 
@@ -462,6 +463,16 @@ export default function TrackingPanel({ order, open, onClose }: Props) {
                 </p>
               </div>
             </div>
+          )}
+
+          {/* ─── BRIEF CHI TIẾT — structured view ─── */}
+          {order.brief && (
+            <BriefView
+              brief={order.brief}
+              productType={order.type}
+              productSize={order.product_size}
+              ordererName={order.orderer_name}
+            />
           )}
 
           {/* ─── TIMELINE TIẾN ĐỘ ─── */}

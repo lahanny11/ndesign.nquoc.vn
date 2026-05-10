@@ -62,6 +62,32 @@ export interface ActivityEvent {
   note?: string
 }
 
+// ─── Brief structured — cho phép parse/cấu trúc nội dung brief ──────────────
+export interface BriefSlide {
+  n: number
+  title: string          // VD: "INSIGHT #01" hoặc "TWIST"
+  quote?: string         // câu quote chính trong slide
+  caption?: string       // caption nếu có
+  timing?: string        // VD: "[00:38] - [01:00]"
+  note?: string          // ghi chú phụ
+}
+
+export interface BriefAttachment {
+  name: string
+  type: 'pdf' | 'doc' | 'image' | 'link'
+  url?: string
+}
+
+export interface BriefStructured {
+  purpose?: string                     // 1. Mục đích
+  audience?: string                    // 2. Đối tượng
+  style?: string                       // 3. Phong cách
+  slides?: BriefSlide[]                // 4. Nội dung — list slide
+  extras?: { label: string; value: string }[]  // các field bổ sung
+  attachments?: BriefAttachment[]
+  raw_text?: string                    // fallback nếu chưa parse được
+}
+
 export interface PerformanceInsights {
   designer: DesignerScorecard
   orderer: OrdererScorecard
@@ -82,5 +108,8 @@ export interface OrderDetail {
   redFlags?: string[]
   steps: TimelineStep[]
   deliveries?: Delivery[]
-  insights?: PerformanceInsights   // mới: chi tiết hiệu suất
+  insights?: PerformanceInsights   // chi tiết hiệu suất
+  brief?: BriefStructured           // brief đã parse structured
+  product_size?: string             // VD: "1080×1080 px"
+  orderer_name?: string             // hiển thị trong brief header
 }
